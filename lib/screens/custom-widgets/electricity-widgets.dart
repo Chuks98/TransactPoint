@@ -15,7 +15,7 @@ Widget buildPromoBanner() {
 }
 
 /// USSD Banner
-Widget buildCableUssdBanner(BuildContext context) {
+Widget buildElectricityUssdBanner(BuildContext context) {
   return Container(
     width: double.infinity,
     padding: const EdgeInsets.all(16),
@@ -33,13 +33,13 @@ Widget buildCableUssdBanner(BuildContext context) {
           context,
         ).textTheme.bodyMedium?.copyWith(color: Colors.white),
         children: const [
-          TextSpan(text: 'No Cable Subscription?\n'),
+          TextSpan(text: 'No Electricity Credit?\n'),
           TextSpan(
             text: 'Top up easily via USSD: ',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           TextSpan(
-            text: '*123*smartcard*amount#',
+            text: '*555*meterNumber*amount#',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
         ],
@@ -48,28 +48,30 @@ Widget buildCableUssdBanner(BuildContext context) {
   );
 }
 
-final Map<String, String> cableLogos = {
-  "DSTV": "assets/images/dstv-logo.jpeg",
-  "GOTV": "assets/images/gotv-logo.png",
-  "STARTIMES": "assets/images/startimes-logo.jpeg",
+final Map<String, String> electricityLogos = {
+  "EKO DISCO ELECTRICITY BILLS": "assets/images/ekedc-logo.png",
+  "ENUGU DISCO ELECTRICITY BILLS": "assets/images/eedc-logo.jpeg",
+  "IBADAN DISCO ELECTRICITY BILLS": "assets/images/ibedc-logo.jpeg",
+  "IKEJA DISCO ELECTRICITY BILLS": "assets/images/ikedc-logo.png",
+  "KADUNA DISCO ELECTRICITY BILLS": "assets/images/kandco-logo.jpeg",
+  "KANO DISCO ELECTRICITY BILLS": "assets/images/kedco-logo.png",
+  "PORT HARCOURT DISCO ELECTRICITY BILLS": "assets/images/phedc-logo.jpeg",
+  // Add more if there are other providers in the future
 };
 
-Widget smartCardSection(
+Widget meterNumberSection(
   BuildContext context, {
   required TextEditingController controller,
-  required List<dynamic> cablePlans,
+  required List<dynamic> electricityPlans,
   required String? selectedBillerCode,
   required ValueChanged<String?> onBillerChanged,
 }) {
-  // Group billers by provider
+  // Group billers by short name or provider code
   final Map<String, dynamic> networkBillers = {};
-  for (var biller in cablePlans) {
+  for (var biller in electricityPlans) {
     final name = (biller['name'] ?? "").toUpperCase();
-    for (var key in cableLogos.keys) {
-      if (name.contains(key)) {
-        networkBillers.putIfAbsent(key, () => biller);
-      }
-    }
+    // You can filter specific providers if needed
+    networkBillers.putIfAbsent(name, () => biller);
   }
 
   return Container(
@@ -81,6 +83,7 @@ Widget smartCardSection(
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        // Dropdown for selecting provider
         Expanded(
           flex: 1,
           child: DropdownButtonFormField<String>(
@@ -92,12 +95,11 @@ Widget smartCardSection(
             value: selectedBillerCode,
             items:
                 networkBillers.entries.map<DropdownMenuItem<String>>((entry) {
-                  final providerName = entry.key;
                   final biller = entry.value;
                   return DropdownMenuItem<String>(
                     value: biller['biller_code'],
                     child: Image.asset(
-                      cableLogos[providerName]!,
+                      electricityLogos[entry.key]!, // <-- use entry.key here
                       width: 40,
                       height: 40,
                     ),
@@ -106,13 +108,17 @@ Widget smartCardSection(
             onChanged: onBillerChanged,
           ),
         ),
+
+        const SizedBox(width: 12),
+
+        // Meter Number input
         Expanded(
           flex: 3,
           child: TextFormField(
             controller: controller,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              hintText: 'Enter Smart Card Number',
+              hintText: 'Enter Meter Number',
               border: InputBorder.none,
             ),
             style: Theme.of(
@@ -120,11 +126,13 @@ Widget smartCardSection(
             ).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
+
         const SizedBox(width: 8),
+
         Icon(
           Icons.account_circle,
-          color: Theme.of(context).colorScheme.primary,
           size: 30,
+          color: Theme.of(context).colorScheme.primary, // optional color
         ),
       ],
     ),

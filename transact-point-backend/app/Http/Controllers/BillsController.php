@@ -261,4 +261,133 @@ class BillsController extends Controller
             ], 500);
         }
     }
+
+
+
+    // ✅ Purchase Cable subscription with proper error handling
+    public function purchaseCable(Request $request)
+    {
+        \Log::info('CableTV Purchase Amount: ' . $request->amount);
+
+        try {
+            $data = [
+                "biller_code"  => $request->input('biller_code'),
+                "item_code"    => $request->input('item_code'),
+                "type"         => "CABLE",
+                "country"      => $request->input('country', 'NG'),
+                "customer_id"  => $request->smartcard, // SmartCard Number
+                "amount"       => $request->amount,
+                "reference"    => "txn_" . uniqid(),
+                "callback_url" => "https://yourdomain.com/webhook"
+            ];
+
+            $billerCode = $request->input('biller_code');
+            $itemCode   = $request->input('item_code');
+            $smartCard  = $request->input('smartcard');
+
+            // Validate required fields
+            if (!$billerCode || !$itemCode || !$smartCard) {
+                \Log::error('Biller code, item code, and SmartCard number are required for cable purchase');
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Biller code, item code, and SmartCard number are required'
+                ], 400);
+            }
+
+            \Log::info('Cable Purchase Request: ' . json_encode($data));
+
+            // Attempt to purchase cable subscription via Flutterwave
+            $response = $this->flutterwave->purchaseBill($billerCode, $itemCode, $data);
+
+            \Log::info('Cable Purchase Response: ' . json_encode($response));
+
+            return response()->json($response);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $body = $e->getResponse()->getBody()->getContents();
+            $decoded = json_decode($body, true);
+            $errorMessage = $decoded['message'] ?? $e->getMessage();
+            \Log::error('Error purchasing cable: ' . $errorMessage);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $errorMessage
+            ], 500);
+
+        } catch (\Exception $e) {
+            \Log::error('Error purchasing cable: ' . $e->getMessage());
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
+    // ✅ Purchase Electricity subscription with proper error handling
+    public function purchaseElectricity(Request $request)
+    {
+        \Log::info('Electricity Purchase Amount: ' . $request->amount);
+
+        try {
+            $data = [
+                "biller_code"  => $request->input('biller_code'),
+                "item_code"    => $request->input('item_code'),
+                "type"         => "ELECTRICITY",
+                "country"      => $request->input('country', 'NG'),
+                "customer_id"  => $request->meter_number, // Meter Number
+                // "amount"       => $request->amount,
+                "amount"       => 3500,
+                "reference"    => "txn_" . uniqid(),
+                "callback_url" => "https://yourdomain.com/webhook"
+            ];
+
+            $billerCode = $request->input('biller_code');
+            $itemCode   = $request->input('item_code');
+            $meter      = $request->input('meter_number');
+            \Log::info('Electricity Purchase Request: ' . json_encode($data));
+
+            // Validate required fields
+            if (!$billerCode || !$itemCode || !$meter) {
+                \Log::error('Biller code, item code, and Meter number are required for electricity purchase');
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Biller code, item code, and Meter number are required'
+                ], 400);
+            }
+
+            \Log::info('Electricity Purchase Request: ' . json_encode($data));
+
+            // Attempt to purchase electricity via Flutterwave
+            $response = $this->flutterwave->purchaseBill($billerCode, $itemCode, $data);
+
+            \Log::info('Electricity Purchase Response: ' . json_encode($response));
+
+            return response()->json($response);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $body = $e->getResponse()->getBody()->getContents();
+            $decoded = json_decode($body, true);
+            $errorMessage = $decoded['message'] ?? $e->getMessage();
+            \Log::error('Error purchasing electricity: ' . $errorMessage);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $errorMessage
+            ], 500);
+
+        } catch (\Exception $e) {
+            \Log::error('Error purchasing electricity: ' . $e->getMessage());
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 }

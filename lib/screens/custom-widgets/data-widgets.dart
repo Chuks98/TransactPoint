@@ -128,9 +128,7 @@ Widget phoneNumberSection(
             ).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
-
         const SizedBox(width: 8),
-
         Icon(
           Icons.account_circle,
           color: Theme.of(context).colorScheme.primary,

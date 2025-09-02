@@ -234,4 +234,102 @@ class ApiService {
       return {};
     }
   }
+
+  // Cable TC Subscription
+  Future<Map<String, dynamic>> purchaseCable({
+    required context,
+    required String smartCard,
+    required String billerCode,
+    String? itemCode,
+    String country = "NG",
+    String? amount,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/purchase-cable"), // changed endpoint
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "smartcard": smartCard, // SmartCard number instead of phone
+          "biller_code": billerCode,
+          "item_code": itemCode,
+          "country": country,
+          "amount": amount,
+        }),
+      );
+
+      final decodedBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        showCustomSnackBar(
+          context,
+          "Cable subscription successful! Ref: ${decodedBody["data"]["reference"]}",
+        );
+        return decodedBody;
+      } else if (response.statusCode == 500) {
+        showCustomSnackBar(context, "Error: ${decodedBody["message"]}");
+        print("Error: ${response.statusCode} - ${response.body}");
+        return {};
+      } else if (response.statusCode == 400) {
+        showCustomSnackBar(context, "Warning: ${decodedBody["message"]}");
+        print("Error: ${response.statusCode} - ${response.body}");
+        return {};
+      } else {
+        showCustomSnackBar(context, "Error: ${decodedBody["message"]}");
+        return {};
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "An error occurred");
+      print("Exception in purchaseCable: $e");
+      return {};
+    }
+  }
+
+  // Purchase Electricity
+  Future<Map<String, dynamic>> purchaseElectricity({
+    required context,
+    required String meterNumber,
+    required String billerCode,
+    String? itemCode,
+    String country = "NG",
+    String? amount,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/purchase-electricity"), // endpoint for electricity
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "meter_number": meterNumber, // meter number instead of smartcard
+          "biller_code": billerCode,
+          "item_code": itemCode,
+          "country": country,
+          "amount": amount,
+        }),
+      );
+
+      final decodedBody = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        showCustomSnackBar(
+          context,
+          "Electricity purchase successful! Ref: ${decodedBody["data"]["reference"]}",
+        );
+        return decodedBody;
+      } else if (response.statusCode == 500) {
+        showCustomSnackBar(context, "Error: ${decodedBody["message"]}");
+        print("Error: ${response.statusCode} - ${response.body}");
+        return {};
+      } else if (response.statusCode == 400) {
+        showCustomSnackBar(context, "Warning: ${decodedBody["message"]}");
+        print("Error: ${response.statusCode} - ${response.body}");
+        return {};
+      } else {
+        showCustomSnackBar(context, "Error: ${decodedBody["message"]}");
+        return {};
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "An error occurred");
+      print("Exception in purchaseElectricity: $e");
+      return {};
+    }
+  }
 }

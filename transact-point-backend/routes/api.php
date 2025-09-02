@@ -10,3 +10,5 @@ Route::get('/billers-by-category', [BillsController::class, 'billersByCategory']
 Route::get('/mobile-networks', [BillsController::class, 'mobileNetworks']);
 Route::post('/purchase-airtime', [BillsController::class, 'purchaseAirtime']);
 Route::post('/purchase-data', [BillsController::class, 'purchaseData']);
+Route::post('/purchase-cable', [BillsController::class, 'purchaseCable']);
+Route::post('/purchase-electricity', [BillsController::class, 'purchaseElectricity']);

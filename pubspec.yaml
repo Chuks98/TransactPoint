@@ -44,6 +44,14 @@ flutter:
     - assets/images/dstv-logo.jpeg
     - assets/images/gotv-logo.png
     - assets/images/startimes-logo.jpeg
+    - assets/images/ikedc-logo.png
+    - assets/images/ekedc-logo.png
+    - assets/images/kedco-logo.png
+    - assets/images/phedc-logo.jpeg
+    - assets/images/eedc-logo.jpeg
+    - assets/images/ibedc-logo.jpeg
+    - assets/images/kandco-logo.jpeg
+
 
 # Flutter Launcher Icons
 flutter_launcher_icons:

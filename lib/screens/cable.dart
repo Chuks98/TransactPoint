@@ -81,25 +81,12 @@ class _CableScreenState extends State<CableScreen> {
 
     setState(() => _isLoading = true);
 
-    // Define filteredPlans before using it
-    final filteredPlans =
-        _cablePlans.where((plan) {
-          final name = (plan['name'] ?? "").toUpperCase();
-          return _selectedProvider == null || name.contains(_selectedProvider!);
-        }).toList();
-
-    buildPlanGrid(
-      plans: filteredPlans,
+    final result = await _billService.purchaseCable(
       context: context,
-      selectedItemCode: _selectedItemCode,
-      selectedAmount: _selectedAmount,
-      onPlanSelected: (selectedPlan) {
-        setState(() {
-          _selectedAmount = selectedPlan['amount']?.toString();
-          _selectedBillerCode = selectedPlan['biller_code']?.toString();
-          _selectedItemCode = selectedPlan['item_code']?.toString();
-        });
-      },
+      smartCard: smartCard,
+      billerCode: _selectedBillerCode!,
+      itemCode: _selectedItemCode!,
+      amount: _selectedAmount,
     );
 
     setState(() => _isLoading = false);
@@ -171,7 +158,7 @@ class _CableScreenState extends State<CableScreen> {
                 ),
 
                 const SizedBox(height: 12),
-                buildUssdBanner(context),
+                buildCableUssdBanner(context),
                 const SizedBox(height: 24),
                 buildPlanGrid(
                   plans: filteredPlans,
