@@ -50,6 +50,15 @@ class BillsController extends Controller
     {
         try {
             $response = $this->flutterwave->getBillCategories();
+
+            if (!isset($response['status']) || $response['status'] !== 'success') {
+                \Log::error('Flutterwave returned error: ' . json_encode($response));
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $response['message'] ?? 'Unable to fetch categories at the moment'
+                ], 500);
+            }
+
             $data = $response['data'] ?? [];
 
             $grouped = [
@@ -65,9 +74,10 @@ class BillsController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error fetching categories: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Service unavailable. Please try again later.'], 500);
         }
     }
+
 
 
     // Returns only the needed category

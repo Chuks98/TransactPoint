@@ -6,8 +6,14 @@ import './screens/custom-widgets/bottom-navbar.dart';
 class MainLayout extends StatefulWidget {
   final String title;
   final Widget body;
+  final bool showBackButton;
 
-  const MainLayout({super.key, required this.title, required this.body});
+  const MainLayout({
+    super.key,
+    required this.title,
+    required this.body,
+    this.showBackButton = false,
+  });
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
@@ -21,7 +27,10 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: widget.title),
+      appBar: CustomAppBar(
+        title: widget.title,
+        showBackButton: widget.showBackButton,
+      ),
       drawer: const CustomSidebar(),
       body: widget.body,
       bottomNavigationBar: CustomBottomNav(

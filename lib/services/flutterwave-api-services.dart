@@ -7,23 +7,33 @@ class ApiService {
   final String baseUrl = dotenv.env['BASE_URL']!;
 
   // Fetch bill categories (AIRTIME, DATA, POWER, CABLETV, etc.)
-  Future<Map<String, dynamic>> fetchBillCategories() async {
+  Future<Map<String, dynamic>> fetchBillCategories(context) async {
     try {
       final response = await http.get(Uri.parse("$baseUrl/bill-categories"));
+
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         print("Bill Categories Response: $decoded");
+
+        showCustomSnackBar(context, "Categories loaded successfully ✅");
+
         return decoded['data'] ?? {};
       } else {
         print("Failed to fetch categories: ${response.body}");
+        showCustomSnackBar(
+          context,
+          "Failed to fetch categories. Please try again.",
+        );
         return {};
       }
     } catch (e) {
       print("Exception in fetchBillCategories: $e");
+      showCustomSnackBar(context, "Error fetching categories: $e");
       return {};
     }
   }
 
+  // Fetch billers by category and group by network for Airtime and Data
   Future<Map<String, List<dynamic>>> fetchBillersByCategory(
     String category,
   ) async {

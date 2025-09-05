@@ -58,10 +58,11 @@ class _TransactPointAppState extends State<TransactPointApp> {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: _themeMode, // dynamically changes theme
-      initialRoute: '/',
+      initialRoute: '/login',
       routes: {
         '/':
-            (context) => const MainLayout(title: "Welcome", body: HomeScreen()),
+            (context) =>
+                const MainLayout(title: "Welcome", body: LoginScreen()),
         '/home':
             (context) => const MainLayout(title: "Welcome", body: HomeScreen()),
         '/dashboard':
@@ -71,14 +72,22 @@ class _TransactPointAppState extends State<TransactPointApp> {
             (context) =>
                 const MainLayout(title: "Profile", body: ProfileScreen()),
         '/airtime':
-            (context) =>
-                const MainLayout(title: "Airtime", body: AirtimeScreen()),
+            (context) => const MainLayout(
+              title: "Airtime",
+              body: AirtimeScreen(),
+              showBackButton: true,
+            ),
         '/data':
-            (context) => const MainLayout(title: "Data", body: DataScreen()),
+            (context) => const MainLayout(
+              title: "Data",
+              body: DataScreen(),
+              showBackButton: true,
+            ),
         '/electricity':
             (context) => const MainLayout(
               title: "Electricity",
               body: ElectricityScreen(),
+              showBackButton: true,
             ),
         '/loan':
             (context) => const MainLayout(title: "Loan", body: LoanScreen()),
@@ -97,7 +106,11 @@ class _TransactPointAppState extends State<TransactPointApp> {
             (context) =>
                 const MainLayout(title: "Travel", body: TravelScreen()),
         '/cabletv':
-            (context) => const MainLayout(title: "Cable", body: CableScreen()),
+            (context) => const MainLayout(
+              title: "Cable",
+              body: CableScreen(),
+              showBackButton: true,
+            ),
         '/savings':
             (context) =>
                 const MainLayout(title: "Savings", body: SavingsScreen()),

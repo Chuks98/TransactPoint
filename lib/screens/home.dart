@@ -28,11 +28,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _loadCategories(context);
   }
 
-  Future<void> _loadCategories() async {
-    final cats = await apiService.fetchBillCategories();
+  Future<void> _loadCategories(BuildContext context) async {
+    final cats = await apiService.fetchBillCategories(context);
+    await apiService.fetchBillers();
 
     setState(() {
       _categories = {...cats, ..._customMenus};
@@ -70,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: RefreshIndicator(
         // 🔹 Pull-to-refresh wrapper
-        onRefresh: _loadCategories,
+        onRefresh: () => _loadCategories(context),
         child: SingleChildScrollView(
           physics:
               const AlwaysScrollableScrollPhysics(), // Needed for RefreshIndicator
