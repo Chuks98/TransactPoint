@@ -82,8 +82,7 @@ class RegisterService {
         // Navigate to Home (or next page)
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        print("❌ Failed to register user: ${response.statusCode}");
-        print("Response body: $responseData");
+        print("❌ Failed to register user: $responseData");
         showCustomSnackBar(
           context,
           responseData['message'] ?? "Registration failed.",

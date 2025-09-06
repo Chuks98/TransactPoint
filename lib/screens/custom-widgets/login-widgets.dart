@@ -285,3 +285,109 @@ Widget biometricSection(
     ],
   );
 }
+
+/// Header section with app title and user info
+Widget headerSection(
+  BuildContext context, {
+  Map<String, dynamic>? loggedInUser,
+  required String Function(String) maskPhone,
+}) {
+  final theme = Theme.of(context);
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(
+        'Transact Point',
+        style: theme.textTheme.titleLarge!.copyWith(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+      const SizedBox(height: 40),
+      profileAvatar(context),
+      const SizedBox(height: 20),
+      Text(
+        loggedInUser != null
+            ? "${loggedInUser['firstname'].toString().toUpperCase()} (${maskPhone(loggedInUser['phone'])})"
+            : "Welcome Guest",
+        style: theme.textTheme.titleMedium!.copyWith(
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+    ],
+  );
+}
+
+/// Profile avatar circle
+Widget profileAvatar(BuildContext context) {
+  final theme = Theme.of(context);
+  return Container(
+    width: 80,
+    height: 80,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: theme.cardTheme.color,
+    ),
+    child: Icon(Icons.person, size: 40, color: theme.colorScheme.secondary),
+  );
+}
+
+/// Switch login mode (fingerprint ↔ pin)
+Widget switchLoginModeText(
+  BuildContext context, {
+  required bool useBiometric,
+  required VoidCallback onTap,
+}) {
+  final theme = Theme.of(context);
+  return Column(
+    children: [
+      GestureDetector(
+        onTap: onTap,
+        child: Text(
+          useBiometric ? 'Login with Password' : 'Login with Fingerprint',
+          style: theme.textTheme.bodyMedium!.copyWith(
+            color: theme.colorScheme.primary,
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+      GestureDetector(
+        onTap: () {
+          Navigator.pushNamed(context, '/register');
+        },
+        child: Text(
+          "New user? Register",
+          style: theme.textTheme.bodyMedium!.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+
+
+/// Switch login mode (fingerprint ↔ pin)
+Widget switchLoginModeTextForRegistration(
+  BuildContext context, {
+  required bool useBiometric,
+  required VoidCallback onTap,
+}) {
+  final theme = Theme.of(context);
+  return Column(
+    children: [
+      GestureDetector(
+        onTap: onTap,
+        child: Text(
+          useBiometric ? 'Login with Password' : 'Login with Fingerprint',
+          style: theme.textTheme.bodyMedium!.copyWith(
+            color: theme.colorScheme.primary,
+          ),
+        ),
+      ),
+    ],
+  );
+}

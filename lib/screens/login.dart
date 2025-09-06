@@ -21,11 +21,14 @@ class _LoginScreenState extends State<LoginScreen>
   late Animation<double> _pulseAnimation;
   final ValueNotifier<bool> _showPin = ValueNotifier(false);
   final LocalAuthentication auth = LocalAuthentication();
+  Map<String, dynamic>? _loggedInUser;
 
   @override
   void initState() {
     super.initState();
     _loadBiometricPreference();
+    _loadUser();
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -33,6 +36,19 @@ class _LoginScreenState extends State<LoginScreen>
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+  }
+
+  Future<void> _loadUser() async {
+    final user = await _authService.getLoggedInUser();
+    print("This is the logged in user: $user");
+    setState(() {
+      _loggedInUser = user;
+    });
+  }
+
+  String _maskPhone(String phone) {
+    if (phone.length < 4) return phone;
+    return "${phone.substring(0, 3)}****${phone.substring(phone.length - 3)}";
   }
 
   @override
@@ -190,39 +206,10 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             Expanded(
               flex: 2,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Transact Point',
-                    style: theme.textTheme.titleLarge!.copyWith(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onBackground,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.cardTheme.color,
-                    ),
-                    child: Icon(
-                      Icons.person,
-                      size: 40,
-                      color: theme.colorScheme.secondary,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'CHUKWUMA(704****391)',
-                    style: theme.textTheme.titleMedium!.copyWith(
-                      color: theme.colorScheme.onBackground,
-                    ),
-                  ),
-                ],
+              child: headerSection(
+                context,
+                loggedInUser: _loggedInUser,
+                maskPhone: _maskPhone,
               ),
             ),
             Expanded(
@@ -252,20 +239,14 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             Padding(
               padding: const EdgeInsets.all(20),
-              child: GestureDetector(
+              child: switchLoginModeText(
+                context,
+                useBiometric: _useBiometric,
                 onTap:
                     () => setState(() {
                       _useBiometric = !_useBiometric;
                       _pin = '';
                     }),
-                child: Text(
-                  _useBiometric
-                      ? 'Login with Password'
-                      : 'Login with Fingerprint',
-                  style: theme.textTheme.bodyMedium!.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
               ),
             ),
           ],
