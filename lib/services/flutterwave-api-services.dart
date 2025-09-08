@@ -342,4 +342,111 @@ class ApiService {
       return {};
     }
   }
+
+  /// Fetch banks for a country (local transfers)
+  Future<List<Map<String, String>>?> fetchBanks(String country, context) async {
+    final response = await http.get(
+      Uri.parse("$baseUrl/get-banks?country=$country"),
+      headers: {"Accept": "application/json"},
+    );
+    final body = json.decode(response.body);
+
+    if (response.statusCode == 200 && body["success"] == true) {
+      showCustomSnackBar(
+        context,
+        body["message"] ?? "Banks loaded successfully",
+      );
+
+      final List<dynamic> bankList =
+          body['data']['data']; // notice the extra ['data']
+      return bankList
+          .map(
+            (b) => {
+              "id": b['id'].toString(),
+              "code": b['code'].toString(),
+              "name": b['name'].toString(),
+            },
+          )
+          .toList();
+    } else {
+      showCustomSnackBar(context, body["message"] ?? "Failed to load banks");
+      return null;
+    }
+  }
+
+  /// Resolve account name for local transfers
+  Future<String?> resolveAccountName({
+    context,
+    required String accountNumber,
+    required String bankCode,
+  }) async {
+    final response = await http.post(
+      Uri.parse("$baseUrl/resolve-account"),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "account_number": accountNumber,
+        "bank_code": bankCode,
+      }),
+    );
+
+    final body = json.decode(response.body);
+
+    if (response.statusCode == 200 && body["status"] == "success") {
+      return body["data"]["account_name"];
+    } else {
+      showCustomSnackBar(
+        context,
+        body["message"] ?? "Failed to resolve account name",
+      );
+      return null;
+    }
+  }
+
+  // Initiate bank transfer
+  Future<Map<String, dynamic>> transfer({
+    context,
+    required String accountBank,
+    required String accountNumber,
+    required double amount,
+    String currency = "NGN",
+    String narration = "Wallet Transfer",
+    String? country,
+    String? swiftCode,
+    String? beneficiaryName,
+    String? beneficiaryAddress,
+    String? beneficiaryCity,
+  }) async {
+    final Map<String, dynamic> payload = {
+      "account_bank": accountBank,
+      "account_number": accountNumber,
+      "amount": amount,
+      "currency": currency,
+      "narration": narration,
+    };
+
+    // Optional fields (only if backend supports them)
+    if (country != null) payload["country"] = country;
+    if (swiftCode != null) payload["swift_code"] = swiftCode;
+    if (beneficiaryName != null) payload["beneficiary_name"] = beneficiaryName;
+    if (beneficiaryAddress != null) {
+      payload["beneficiary_address"] = beneficiaryAddress;
+    }
+    if (beneficiaryCity != null) payload["beneficiary_city"] = beneficiaryCity;
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/transfer"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(payload),
+    );
+
+    final body = json.decode(response.body);
+
+    if (response.statusCode == 200 && body["success"] == true) {
+      showCustomSnackBar(context, body["message"] ?? "Transfer successful");
+      return body;
+    } else {
+      showCustomSnackBar(context, body["message"] ?? "Transfer failed");
+      return {};
+    }
+  }
 }

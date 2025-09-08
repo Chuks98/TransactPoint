@@ -7,12 +7,14 @@ class MainLayout extends StatefulWidget {
   final String title;
   final Widget body;
   final bool showBackButton;
+  final int initialIndex; // 👈 add this
 
   const MainLayout({
     super.key,
     required this.title,
     required this.body,
     this.showBackButton = false,
+    this.initialIndex = 0, // default Home
   });
 
   @override
@@ -20,9 +22,21 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
-  final List<String> _routes = ['/home', '/dashboard', '/profile', '/settings'];
+  final List<String> _routes = [
+    '/home',
+    '/airtime',
+    '/transfer',
+    '/profile',
+    '/settings',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex; // 👈 start from correct tab
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +50,7 @@ class _MainLayoutState extends State<MainLayout> {
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          // navigate to corresponding route
+          if (_currentIndex == index) return; // avoid reloading same tab
           Navigator.pushReplacementNamed(context, _routes[index]);
         },
       ),

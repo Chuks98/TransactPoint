@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'flutterwave' => [
+        'public_key'     => env('FLW_PUBLIC_KEY'),
+        'secret_key'     => env('FLW_SECRET_KEY'),
+        'client_id'      => env('FLW_CLIENT_ID'),
+        'client_secret'  => env('FLW_CLIENT_SECRET'),
+        'encryption_key' => env('FLW_ENCRYPTION_KEY'),
+        'test_api'       => env('FLW_TEST_API'),
+        'live_api'       => env('FLW_LIVE_API'),
+        'environment'    => env('FLW_ENVIRONMENT', 'test'),
+    ],
+
 ];

@@ -13,6 +13,9 @@ Route::post('/purchase-airtime', [BillsController::class, 'purchaseAirtime']);
 Route::post('/purchase-data', [BillsController::class, 'purchaseData']);
 Route::post('/purchase-cable', [BillsController::class, 'purchaseCable']);
 Route::post('/purchase-electricity', [BillsController::class, 'purchaseElectricity']);
+Route::post('/transfer', [BillsController::class, 'transfer']);
+Route::get('/get-banks', [BillsController::class, 'getBanks']);
+Route::post('/resolve-account', [BillsController::class, 'resolveAccount']);
 
 
 

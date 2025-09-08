@@ -309,7 +309,8 @@ Widget headerSection(
       const SizedBox(height: 20),
       Text(
         loggedInUser != null
-            ? "${loggedInUser['firstname'].toString().toUpperCase()} (${maskPhone(loggedInUser['phone'])})"
+            ? "${(loggedInUser['firstName'] ?? '').toString().toUpperCase()} "
+                "(${maskPhone(loggedInUser['phoneNumber'] ?? '')})"
             : "Welcome Guest",
         style: theme.textTheme.titleMedium!.copyWith(
           color: theme.colorScheme.onBackground,
@@ -367,8 +368,6 @@ Widget switchLoginModeText(
     ],
   );
 }
-
-
 
 /// Switch login mode (fingerprint ↔ pin)
 Widget switchLoginModeTextForRegistration(

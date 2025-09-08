@@ -400,4 +400,146 @@ class BillsController extends Controller
     }
 
 
+    // ================= TRANSFERS / PAYMENTS =================
+    public function transfer(Request $request)
+    {
+        $request->validate([
+            'account_bank'       => 'required|string',
+            'account_number'     => 'required|string',
+            'amount'             => 'required|numeric|min:1',
+            'currency'           => 'required|string',
+            'narration'          => 'nullable|string',
+            'country'            => 'nullable|string',
+            'swift_code'         => 'nullable|string',
+            'beneficiary_name'   => 'nullable|string',
+            'beneficiary_address'=> 'nullable|string',
+            'beneficiary_city'   => 'nullable|string',
+        ]);
+
+        try {
+            $payload = [
+                'account_bank'   => $request->account_bank,
+                'account_number' => $request->account_number,
+                'amount'         => $request->amount,
+                'currency'       => $request->currency,
+                'narration'      => $request->narration ?? 'Wallet Transfer',
+                'reference'      => uniqid("tx_"),
+            ];
+
+            // Attach international fields if provided
+            if ($request->filled('country')) $payload['country'] = $request->country;
+            if ($request->filled('swift_code')) $payload['swift_code'] = $request->swift_code;
+            if ($request->filled('beneficiary_name')) $payload['beneficiary_name'] = $request->beneficiary_name;
+            if ($request->filled('beneficiary_address')) $payload['beneficiary_address'] = $request->beneficiary_address;
+            if ($request->filled('beneficiary_city')) $payload['beneficiary_city'] = $request->beneficiary_city;
+
+            Log::info("Initiating transfer", ['payload' => $payload]);
+
+            $response = $this->flutterwave->authorizedRequestV3('POST', 'transfers', [
+                'json' => $payload
+            ]);
+
+            $body = json_decode($response->getBody(), true);
+
+            Log::info("Transfer response", ['response' => $body]);
+
+            return response()->json([
+                'success' => true,
+                'message' => $body['message'] ?? 'Transfer initiated successfully',
+                'data'    => $body
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Transfer error", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to initiate transfer at this time. Please try again later.'
+            ], 500);
+        }
+    }
+
+
+
+    // ================= BANKS =================
+
+    public function getBanks(Request $request)
+    {
+        try {
+            $country = $request->get('country', 'NG');
+            Log::info("Fetching banks for country", ['country' => $country]);
+
+            $response = $this->flutterwave->getBanks($country);
+
+            Log::info("Banks retrieved", ['country' => $country, 'count' => count($response['data'] ?? [])]);
+            Log::debug("Banks data", ['data' => $response]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Banks retrieved successfully',
+                'data'    => $response
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Get banks error", [
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to fetch banks at this time. Please try again later.'
+            ], 500);
+        }
+    }
+
+
+
+    // ================= RESOLVE ACCOUNT =================
+    
+    public function resolveAccount(Request $request)
+    {
+        $request->validate([
+            'account_number' => 'required|string',
+            'bank_code'      => 'required|string',
+        ]);
+
+        try {
+            $response = $this->flutterwave->resolveAccountName($request->account_number, $request->bank_code);
+
+            if (isset($response['status']) && $response['status'] === 'success') {
+                \Log::info("Fetching account details", ['account_number' => $request->account_number, 'bank_code' => $request->bank_code]);
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => $response['message'],
+                    'data'    => [
+                        'account_number' => $response['data']['account_number'],
+                        'account_name'   => $response['data']['account_name'],
+                        'bank_code'      => $response['data']['bank_code'],
+                    ]
+                ]);
+            }
+
+            \Log::error("Account resolve failed", [
+                'account_number' => $request->account_number,
+                'bank_code'      => $request->bank_code,
+                'response'      => $response,
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $response['message'] ?? 'Unable to resolve account',
+            ], 400);
+
+        } catch (\Exception $e) {
+            \Log::error("Account resolve error", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Something went wrong, please try again later.',
+            ], 500);
+        }
+    }
 }

@@ -29,8 +29,12 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: "Dashboard",
+            icon: Icon(Icons.phone_android),
+            label: "Airtime",
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.swap_horiz), // transfer-like icon
+            label: "Transfers",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),

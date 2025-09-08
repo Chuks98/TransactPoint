@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ApiService apiService = ApiService();
   Map<String, dynamic> _categories = {};
   final Map<String, dynamic> _customMenus = {
+    "Transfer": {},
     "Invest": {},
     "Travel": {},
     "Shopping": {},
@@ -55,6 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return Icons.tv;
       case "invest":
         return Icons.trending_up;
+      case "transfer":
+        return Icons.swap_horiz;
       case "travel":
         return Icons.flight_takeoff;
       case "shopping":

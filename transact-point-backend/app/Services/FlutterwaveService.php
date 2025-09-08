@@ -60,6 +60,7 @@ class FlutterwaveService
                 );
 
                 $body = json_decode($response->getBody(), true);
+                Log::info('Fetched new Flutterwave access token', ['token' => $body['access_token']]);
                 return $body['access_token'] ?? null;
             });
         } catch (\Exception $e) {
@@ -86,7 +87,54 @@ class FlutterwaveService
     }
 
     /**
-     * ========== V3 CLIENT (Secret key) ==========
+     * ========== PAYMENTS / TRANSACTIONS (V4) ==========
+     */
+    public function verifyTransaction($id)
+    {
+        $response = $this->authorizedRequestV4('GET', "transactions/{$id}/verify");
+        return json_decode($response->getBody(), true);
+    }
+
+    public function refundTransaction($id, $amount, $currency)
+    {
+        $payload = ['amount' => $amount, 'currency' => $currency];
+
+        $response = $this->authorizedRequestV4('POST', "transactions/{$id}/refund", [
+            'json' => $payload
+        ]);
+        return json_decode($response->getBody(), true);
+    }
+
+    public function getTransactionDetails($txRef)
+    {
+        $response = $this->authorizedRequestV4('GET', "transactions/{$txRef}");
+        return json_decode($response->getBody(), true);
+    }
+
+    public function getBanks($country = 'NG')
+    {
+        $response = $this->authorizedRequestV4('GET', "banks?country={$country}");
+        return json_decode($response->getBody(), true);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * ========== V3 CLIENT Auth (Secret key) ==========
      */
     private function authorizedClientV3()
     {
@@ -95,7 +143,7 @@ class FlutterwaveService
             'headers'  => [
                 'Authorization' => 'Bearer ' . env('FLW_SECRET_KEY'),
                 'Accept'        => 'application/json',
-                'Content-Type'  => 'application/json',
+                'accept' => 'application/json',
             ]
         ]);
     }
@@ -149,34 +197,14 @@ class FlutterwaveService
         }
     }
 
-    /**
-     * ========== PAYMENTS / TRANSACTIONS (V4) ==========
-     */
-    public function verifyTransaction($id)
+    public function resolveAccountName($accountNumber, $bankCode)
     {
-        $response = $this->authorizedRequestV4('GET', "transactions/{$id}/verify");
-        return json_decode($response->getBody(), true);
-    }
-
-    public function refundTransaction($id, $amount, $currency)
-    {
-        $payload = ['amount' => $amount, 'currency' => $currency];
-
-        $response = $this->authorizedRequestV4('POST', "transactions/{$id}/refund", [
-            'json' => $payload
+        $response = $this->authorizedRequestV3('GET', 'accounts/resolve', [
+            'query' => [
+                'account_number' => $accountNumber,
+                'bank_code'      => $bankCode
+            ]
         ]);
-        return json_decode($response->getBody(), true);
-    }
-
-    public function getTransactionDetails($txRef)
-    {
-        $response = $this->authorizedRequestV4('GET', "transactions/{$txRef}");
-        return json_decode($response->getBody(), true);
-    }
-
-    public function getBanks($country = 'NG')
-    {
-        $response = $this->authorizedRequestV4('GET', "banks?country={$country}");
         return json_decode($response->getBody(), true);
     }
 }

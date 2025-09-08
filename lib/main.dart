@@ -11,6 +11,7 @@ import 'package:transact_point/screens/savings.dart';
 import 'package:transact_point/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/shopping.dart';
+import 'package:transact_point/screens/transfer.dart';
 import 'package:transact_point/screens/travel.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme.dart';
@@ -64,18 +65,26 @@ class _TransactPointAppState extends State<TransactPointApp> {
             (context) =>
                 const MainLayout(title: "Welcome", body: LoginScreen()),
         '/home':
-            (context) => const MainLayout(title: "Welcome", body: HomeScreen()),
+            (context) => const MainLayout(
+              title: "Welcome",
+              body: HomeScreen(),
+              initialIndex: 0,
+            ),
         '/dashboard':
             (context) =>
                 const MainLayout(title: "Dashboard", body: DashboardScreen()),
         '/profile':
-            (context) =>
-                const MainLayout(title: "Profile", body: ProfileScreen()),
+            (context) => const MainLayout(
+              title: "Profile",
+              body: ProfileScreen(),
+              initialIndex: 3,
+            ),
         '/airtime':
             (context) => const MainLayout(
               title: "Airtime",
               body: AirtimeScreen(),
               showBackButton: true,
+              initialIndex: 1,
             ),
         '/data':
             (context) => const MainLayout(
@@ -88,6 +97,12 @@ class _TransactPointAppState extends State<TransactPointApp> {
               title: "Electricity",
               body: ElectricityScreen(),
               showBackButton: true,
+            ),
+        '/transfer':
+            (context) => const MainLayout(
+              title: "Transfer",
+              body: TransferScreen(),
+              initialIndex: 2,
             ),
         '/loan':
             (context) => const MainLayout(title: "Loan", body: LoanScreen()),
@@ -121,6 +136,7 @@ class _TransactPointAppState extends State<TransactPointApp> {
                 toggleTheme: _toggleTheme,
                 isDarkMode: _isDarkMode,
               ),
+              initialIndex: 4,
             ),
         '/register': (context) => RegisterScreen(),
         '/login': (context) => LoginScreen(),
