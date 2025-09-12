@@ -157,7 +157,8 @@ class FlutterwaveService
     /**
      * ========== BILLS (V3 ONLY) ==========
      */
-    public function getBillCategories()
+
+    public function getTopBillCategories()
     {
         $response = $this->authorizedRequestV3('GET', 'top-bill-categories', [
             'query' => ['country' => 'NG']
@@ -165,23 +166,14 @@ class FlutterwaveService
         return json_decode($response->getBody(), true);
     }
 
-    public function getBillers($country = null, $categoryCode = null)
+    public function getBillCategories()
     {
-        $url    = 'billers';
-        $params = [];
-        if ($country) $params[] = "country={$country}";
-        if ($categoryCode) $params[] = "category={$categoryCode}";
-        if ($params) $url .= '?' . implode('&', $params);
-
-        $response = $this->authorizedRequestV3('GET', $url);
+        $response = $this->authorizedRequestV3('GET', 'bill-categories', [
+            'query' => ['country' => 'NG']
+        ]);
         return json_decode($response->getBody(), true);
     }
 
-    public function getBillerItems($billerCode)
-    {
-        $response = $this->authorizedRequestV3('GET', "billers/{$billerCode}/items");
-        return json_decode($response->getBody(), true);
-    }
 
     public function purchaseBill($billerCode, $itemCode, $payload)
     {
@@ -199,12 +191,48 @@ class FlutterwaveService
 
     public function resolveAccountName($accountNumber, $bankCode)
     {
-        $response = $this->authorizedRequestV3('GET', 'accounts/resolve', [
-            'query' => [
-                'account_number' => $accountNumber,
-                'bank_code'      => $bankCode
+        $response = $this->authorizedRequestV3('POST', 'accounts/resolve', [
+            'json' => [
+                'account_number'    => $accountNumber,
+                'account_bank'      => $bankCode,
+                "currency"          => "NGN"
             ]
         ]);
-        return json_decode($response->getBody(), true);
+
+        $body = $response->getBody();
+        \Log::info('Raw Flutterwave response', ['body' => $body]);
+        return json_decode($body, true);
+    }
+
+
+    public function transfer($data)
+    {
+        $response = $this->authorizedRequestV3('POST', 'transfers', [
+            'json' => $data
+        ]);
+
+        $body = $response->getBody();
+        return json_decode($body, true);
+    }
+
+    
+
+    public function convert($amount, $from_currency, $to_currency)
+    {
+        $response = $this->authorizedRequestV3('GET', "transfers/rates?amount={$amount}&destination_currency={$from_currency}&source_currency={$to_currency}");
+
+        $body = $response->getBody();
+        return json_decode($body, true);
+    }
+
+
+    public function fundAccount($payload)
+    {
+        $response = $this->authorizedRequestV3('POST', 'payments', [
+            'json' => $payload,
+        ]);
+
+        $body = $response->getBody();
+        return json_decode($body, true);
     }
 }

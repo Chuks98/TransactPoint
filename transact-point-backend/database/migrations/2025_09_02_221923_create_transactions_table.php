@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('biller_code')->nullable(); // e.g., provider ID
             $table->string('item_code')->nullable();   // e.g., specific product/service code
-            $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
+            $table->string('status')->default('pending'); // Changed from ENUM to STRING
             $table->timestamps(); // created_at = transaction date
         });
 

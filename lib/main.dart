@@ -3,17 +3,21 @@ import 'package:transact_point/screens/airtime.dart';
 import 'package:transact_point/screens/bills.dart';
 import 'package:transact_point/screens/cable.dart';
 import 'package:transact_point/screens/data.dart';
+import 'package:transact_point/screens/edit-account.dart';
 import 'package:transact_point/screens/electricity.dart';
+import 'package:transact_point/screens/fund-account.dart';
 import 'package:transact_point/screens/insurance.dart';
-import 'package:transact_point/screens/invest.dart';
 import 'package:transact_point/screens/loan.dart';
+import 'package:transact_point/screens/login-normally.dart';
 import 'package:transact_point/screens/savings.dart';
 import 'package:transact_point/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/shopping.dart';
+import 'package:transact_point/screens/support.dart';
 import 'package:transact_point/screens/transfer.dart';
 import 'package:transact_point/screens/travel.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:transact_point/screens/wallet.dart';
 import 'theme.dart';
 
 // Screens
@@ -92,6 +96,12 @@ class _TransactPointAppState extends State<TransactPointApp> {
               body: DataScreen(),
               showBackButton: true,
             ),
+        '/cabletv':
+            (context) => const MainLayout(
+              title: "Cable",
+              body: CableScreen(),
+              showBackButton: true,
+            ),
         '/electricity':
             (context) => const MainLayout(
               title: "Electricity",
@@ -106,9 +116,6 @@ class _TransactPointAppState extends State<TransactPointApp> {
             ),
         '/loan':
             (context) => const MainLayout(title: "Loan", body: LoanScreen()),
-        '/invest':
-            (context) =>
-                const MainLayout(title: "Invest", body: InvestScreen()),
         '/bills':
             (context) => const MainLayout(title: "Bills", body: BillsScreen()),
         '/insurance':
@@ -120,15 +127,28 @@ class _TransactPointAppState extends State<TransactPointApp> {
         '/travel':
             (context) =>
                 const MainLayout(title: "Travel", body: TravelScreen()),
-        '/cabletv':
-            (context) => const MainLayout(
-              title: "Cable",
-              body: CableScreen(),
-              showBackButton: true,
-            ),
+
         '/savings':
             (context) =>
                 const MainLayout(title: "Savings", body: SavingsScreen()),
+        '/wallet':
+            (context) => const MainLayout(
+              title: "My Account",
+              body: WalletScreen(),
+              showBackButton: true,
+            ),
+        '/edit-account':
+            (context) => const MainLayout(
+              title: "Edit Account",
+              body: EditAccountScreen(),
+              showBackButton: true,
+            ),
+        '/fund-account':
+            (context) => const MainLayout(
+              title: "Fund Account",
+              body: AccountFundingScreen(),
+              showBackButton: true,
+            ),
         '/settings':
             (context) => MainLayout(
               title: "Settings",
@@ -140,6 +160,13 @@ class _TransactPointAppState extends State<TransactPointApp> {
             ),
         '/register': (context) => RegisterScreen(),
         '/login': (context) => LoginScreen(),
+        '/login-normally': (context) => LoginNormallyScreen(),
+        '/support':
+            (context) => MainLayout(
+              title: "Support",
+              body: SupportScreen(),
+              showBackButton: true,
+            ),
       },
     );
   }

@@ -21,6 +21,7 @@ class _TransferScreenState extends State<TransferScreen> {
 
   String? selectedCountry;
   String? selectedBankCode;
+  String? selectedBankName;
   String? accountNumber;
   String? amount;
   String? description;
@@ -38,16 +39,21 @@ class _TransferScreenState extends State<TransferScreen> {
 
   void _checkFormValidity() {
     setState(() {
-      isFormValid =
-          (selectedCountry?.isNotEmpty ?? false) &&
-          (selectedBankCode?.isNotEmpty ?? false) &&
-          (accountNumber?.isNotEmpty ?? false) &&
-          (amount?.isNotEmpty ?? false) &&
-          (!isInternational ||
-              ((beneficiaryName?.isNotEmpty ?? false) &&
-                  (swiftCode?.isNotEmpty ?? false) &&
-                  (beneficiaryAddress?.isNotEmpty ?? false) &&
-                  (beneficiaryCity?.isNotEmpty ?? false)));
+      if (isInternational) {
+        isFormValid =
+            (accountNumber?.isNotEmpty ?? false) &&
+            (amount?.isNotEmpty ?? false) &&
+            (beneficiaryName?.isNotEmpty ?? false) &&
+            (swiftCode?.isNotEmpty ?? false) &&
+            (beneficiaryCity?.isNotEmpty ?? false) &&
+            (beneficiaryAddress?.isNotEmpty ?? false);
+      } else if (!isInternational) {
+        isFormValid =
+            (selectedCountry?.isNotEmpty ?? false) &&
+            (selectedBankCode?.isNotEmpty ?? false) &&
+            (accountNumber?.isNotEmpty ?? false) &&
+            (amount?.isNotEmpty ?? false);
+      }
     });
   }
 
@@ -59,6 +65,7 @@ class _TransferScreenState extends State<TransferScreen> {
       isInternational = countryCode.startsWith("INT_");
       banks = [];
       selectedBankCode = null;
+      selectedBankName = null;
       isLoadingBanks = true; // 👈 Start loading
     });
 
@@ -132,8 +139,10 @@ class _TransferScreenState extends State<TransferScreen> {
                               )
                               .toList(),
                       onChanged: (val) {
-                        _checkFormValidity(); // 👈
-                        if (val != null) _onCountrySelected(val);
+                        if (val != null) {
+                          _onCountrySelected(val);
+                        }
+                        _checkFormValidity();
                       },
                     ),
                     const SizedBox(height: 16),
@@ -143,11 +152,21 @@ class _TransferScreenState extends State<TransferScreen> {
                         isLoadingBanks: isLoadingBanks,
                         banks: banks,
                         selectedBankCode: selectedBankCode,
+                        selectedBankName: selectedBankName,
                         onChanged: (val) {
-                          _checkFormValidity(); // 👈
-                          selectedBankCode = val;
+                          setState(() {
+                            selectedBankCode = val;
+                            // Also update the selectedBankName if you pass it through
+                            final selectedBank = banks?.firstWhere(
+                              (b) => b['code'] == val,
+                              orElse: () => {'name': '', 'code': ''},
+                            );
+                            selectedBankName = selectedBank?['name'];
+                          });
+                          _checkFormValidity(); // call after state update
                         },
                       ),
+
                     const SizedBox(height: 16),
 
                     accountNumberField(
@@ -156,8 +175,8 @@ class _TransferScreenState extends State<TransferScreen> {
                       beneficiaryName: beneficiaryName,
                       isFetchingName: isFetchingName,
                       onChanged: (val) {
-                        _checkFormValidity();
                         accountNumber = val;
+                        _checkFormValidity();
 
                         // Only fetch for local banks and valid length
                         if (!isInternational &&
@@ -166,19 +185,11 @@ class _TransferScreenState extends State<TransferScreen> {
                           _resolveAccountName(context);
                         } else {
                           // Reset name if invalid
-                          setState(() => beneficiaryName = '');
+                          setState(() => beneficiaryName = null);
                         }
                       },
                     ),
 
-                    accountName(
-                      isFetchingName: isFetchingName,
-                      beneficiaryName: beneficiaryName,
-                      onChanged: (val) {
-                        beneficiaryName = val;
-                        _checkFormValidity(); // still optional, won’t block button
-                      },
-                    ),
                     // Extra fields if international
                     if (isInternational) ...[
                       buildCustomTextField(
@@ -273,13 +284,14 @@ class _TransferScreenState extends State<TransferScreen> {
           title: "Confirm Transfer",
           content: [
             Text("Country: $selectedCountry"),
-            Text("Bank Code: $selectedBankCode"),
+            if (!isInternational) Text("Bank: $selectedBankName"),
+            Text("Name: $beneficiaryName"),
             Text("Account: $accountNumber"),
             Text("Amount: $amount"),
             if (description?.isNotEmpty ?? false) Text("Note: $description"),
             if (isInternational) ...[
               Text("Beneficiary: $beneficiaryName"),
-              Text("SWIFT: $swiftCode"),
+              Text("SWIFT CODE: $swiftCode"),
               Text("Address: $beneficiaryAddress, $beneficiaryCity"),
             ],
           ],
@@ -301,12 +313,13 @@ class _TransferScreenState extends State<TransferScreen> {
     );
 
     try {
-      final result = await _apiService.transfer(
-        accountBank: selectedBankCode!,
+      final success = await _apiService.transfer(
+        context: context,
+        accountBank: isInternational ? null : selectedBankCode!,
         accountNumber: accountNumber!,
         amount: double.tryParse(amount!) ?? 0.0,
         currency: isInternational ? "USD" : "NGN",
-        narration: description ?? "Wallet Transfer",
+        description: description ?? "Wallet Transfer",
         country: isInternational ? selectedCountry : null,
         swiftCode: isInternational ? swiftCode : null,
         beneficiaryName: isInternational ? beneficiaryName : null,
@@ -315,8 +328,24 @@ class _TransferScreenState extends State<TransferScreen> {
       );
 
       Navigator.pop(context); // close loader
-      _showResultDialog(success: true);
-      print("✅ Transfer Success: $result");
+
+      _showResultDialog(success: success);
+
+      if (success) {
+        print("✅ Transfer Success");
+        setState(() {
+          selectedBankCode = isInternational ? selectedBankCode : '';
+          accountNumber = '';
+          amount = '';
+          description = '';
+          swiftCode = '';
+          beneficiaryName = '';
+          beneficiaryAddress = '';
+          beneficiaryCity = '';
+        });
+      } else {
+        print("❌ Transfer Failed (API returned false)");
+      }
     } catch (e) {
       Navigator.pop(context);
       _showResultDialog(success: false);
@@ -328,7 +357,13 @@ class _TransferScreenState extends State<TransferScreen> {
     showDialog(
       context: context,
       builder:
-          (_) => ResultDialog(success: success, accountNumber: accountNumber!),
+          (_) => ResultDialog(
+            title: success ? "Transfer Successful" : "Transfer Failed",
+            message:
+                success
+                    ? "Your transfer to $accountNumber was successful."
+                    : "Something went wrong. Please try again.",
+          ),
     );
   }
 }

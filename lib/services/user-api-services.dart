@@ -104,13 +104,93 @@ class RegisterService {
   }
 
   /// Login with PIN
-  Future<bool> loginWithPin(String pin) async {
-    final storedPin = await secureStorage.read(key: 'user_pin');
-    if (storedPin != null && storedPin == pin) {
-      await secureStorage.write(key: 'is_logged_in', value: 'true');
-      return true;
+  Future<bool> loginWithPin(BuildContext context, String pin) async {
+    try {
+      // Step 1: Get the user's phone number from secure storage
+      final userJson = await secureStorage.read(key: 'logged_in_user');
+      if (userJson == null) {
+        showCustomSnackBar(
+          context,
+          'No user found. Please register or login normally.',
+        );
+        return false;
+      }
+
+      final userData = jsonDecode(userJson);
+      final phoneNumber = userData['phoneNumber'];
+      if (phoneNumber == null) {
+        showCustomSnackBar(context, 'User phone number missing.');
+        return false;
+      }
+
+      // Step 2: Send to backend for verification
+      final url = Uri.parse('$baseUrl/user/login');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phoneNumber': phoneNumber, 'password': pin}),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        // Step 3: Store login status and updated user info
+        await secureStorage.write(key: 'is_logged_in', value: 'true');
+        await secureStorage.write(
+          key: 'logged_in_user',
+          value: jsonEncode(responseData['data']),
+        );
+        showCustomSnackBar(context, responseData['message']);
+
+        return true;
+      } else {
+        showCustomSnackBar(context, responseData['message'] ?? 'Login failed.');
+        return false;
+      }
+    } catch (e) {
+      print("🚨 Login error: $e");
+      showCustomSnackBar(context, 'Login failed: $e');
+      return false;
     }
-    return false;
+  }
+
+  /// Login normally with phone number and PIN
+  Future<bool> loginNormally(
+    BuildContext context,
+    String phoneNumber,
+    String pin,
+  ) async {
+    try {
+      // Step 1: Send phone + pin directly to backend
+      final url = Uri.parse('$baseUrl/user/login');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phoneNumber': phoneNumber, 'password': pin}),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      // Step 2: Handle response
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        // Store login status and user info
+        await secureStorage.write(key: 'is_logged_in', value: 'true');
+        await secureStorage.write(
+          key: 'logged_in_user',
+          value: jsonEncode(responseData['data']),
+        );
+
+        showCustomSnackBar(context, responseData['message']);
+        return true;
+      } else {
+        showCustomSnackBar(context, responseData['message'] ?? 'Login failed.');
+        return false;
+      }
+    } catch (e) {
+      print("🚨 LoginNormally error: $e");
+      showCustomSnackBar(context, 'Login failed: $e');
+      return false;
+    }
   }
 
   /// Authenticate via biometric
@@ -124,6 +204,101 @@ class RegisterService {
     } catch (e) {
       print("Biometric auth error: $e");
       return false;
+    }
+  }
+
+  /// Logs out user and clears secure storage, then redirects to login page
+  Future<void> logout(BuildContext context) async {
+    try {
+      // Delete specific keys
+      await secureStorage.delete(key: 'is_logged_in');
+
+      // If you want a complete wipe, uncomment this:
+      // await secureStorage.deleteAll();
+
+      print("✅ User logged out successfully");
+
+      // Redirect to login page and clear navigation stack
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    } catch (e) {
+      print("🚨 Logout error: $e");
+      showCustomSnackBar(context, "Logout failed: $e");
+    }
+  }
+
+  // Check if user is logged in
+  Future<bool> isLoggedIn() async {
+    final value = await secureStorage.read(key: 'is_logged_in');
+    return value == 'true';
+  }
+
+  Future<Map<String, dynamic>> getWallet(String userId) async {
+    try {
+      final url = Uri.parse('$baseUrl/user/get-wallet/$userId');
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final responseData = jsonDecode(response.body);
+      return responseData; // {status: 'success', data: {...}} or {status: 'error', message: '...'}
+    } catch (e) {
+      print("🚨 getWallet error: $e");
+      return {'status': 'error', 'message': e.toString()};
+    }
+  }
+
+  // Create wallet
+  Future<Map<String, dynamic>> createWallet(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final url = Uri.parse('$baseUrl/user/create-wallet');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      final responseData = jsonDecode(response.body);
+      return responseData; // {status: 'success', data: {...}} or {status: 'error', message: '...'}
+    } catch (e) {
+      print("🚨 createWallet error: $e");
+      return {'status': 'error', 'message': e.toString()};
+    }
+  }
+
+  // ✅ Update Wallet / Account
+  Future<Map<String, dynamic>> updateAccount({
+    required String userId,
+    required String country,
+    required String currency,
+    required String currencySign,
+    required String code,
+    required String amount,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/user/update-account');
+      final payload = {
+        'user_id': userId,
+        'country': country,
+        'currency': currency,
+        'currencySign': currencySign,
+        'code': code,
+        'amount': amount,
+      };
+
+      final response = await http.patch(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      final responseData = jsonDecode(response.body);
+      return responseData; // {status: 'success', data: {...}} or {status: 'error', message: '...'}
+    } catch (e) {
+      print("🚨 updateAccount error: $e");
+      return {'status': 'error', 'message': e.toString()};
     }
   }
 }

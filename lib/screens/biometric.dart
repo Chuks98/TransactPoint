@@ -120,10 +120,9 @@ class _BiometricScreenState extends State<BiometricScreen>
             pin: _pin,
             useBiometric: false,
           );
-          showCustomSnackBar(context, "PIN registration successful!");
         } else {
           // Returning PIN login
-          success = await _registerService.loginWithPin(_pin);
+          success = await _registerService.loginWithPin(context, _pin);
           if (success) {
             Navigator.pushReplacementNamed(context, '/home');
           } else {

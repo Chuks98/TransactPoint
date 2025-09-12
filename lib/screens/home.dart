@@ -19,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic> _categories = {};
   final Map<String, dynamic> _customMenus = {
     "Transfer": {},
-    "Invest": {},
     "Travel": {},
     "Shopping": {},
     "More": {},
@@ -34,8 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadCategories(BuildContext context) async {
     final cats = await apiService.fetchBillCategories(context);
-    await apiService.fetchBillers();
-
     setState(() {
       _categories = {...cats, ..._customMenus};
       _loading = false;
@@ -54,8 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
       case "cabletv":
       case "tv":
         return Icons.tv;
-      case "invest":
-        return Icons.trending_up;
       case "transfer":
         return Icons.swap_horiz;
       case "travel":
@@ -95,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     {
                       "icon": "0xe041",
                       "title": "Invest Smartly",
-                      "subtitle": "Grow your money with Crest Finance",
+                      "subtitle": "Grow your money with us",
                     },
                     {
                       "icon": "0xe1bc",
@@ -113,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 userFullName.toUpperCase(),
                 style: Theme.of(
                   context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
@@ -199,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             textAlign: TextAlign.center,
                                             style: Theme.of(
                                               context,
-                                            ).textTheme.titleMedium?.copyWith(
+                                            ).textTheme.bodySmall?.copyWith(
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),

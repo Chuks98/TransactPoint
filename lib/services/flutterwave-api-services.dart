@@ -22,7 +22,7 @@ class ApiService {
         print("Failed to fetch categories: ${response.body}");
         showCustomSnackBar(
           context,
-          "Failed to fetch categories. Please try again.",
+          "Failed to fetch categories. Please ensure you have internet connection.",
         );
         return {};
       }
@@ -87,44 +87,6 @@ class ApiService {
     } catch (e) {
       print("Exception in fetchBillersByCategory: $e");
       return {};
-    }
-  }
-
-  /// Fetch all billers
-  Future<List<dynamic>> fetchBillers({String country = "NG"}) async {
-    try {
-      final response = await http.get(
-        Uri.parse("$baseUrl/billers?country=$country"),
-        headers: {"Accept": "application/json"},
-      );
-
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        print("Billers Response: $decoded");
-        return decoded['data'] ?? []; // Flutterwave returns billers in data
-      } else {
-        print("Failed to fetch billers: ${response.body}");
-        return [];
-      }
-    } catch (e) {
-      print("Error fetching billers: $e");
-      return [];
-    }
-  }
-
-  Future<List<dynamic>> fetchBillerItems(String billerCode) async {
-    final response = await http.get(
-      Uri.parse("$baseUrl/billers/$billerCode/items"),
-      headers: {"Accept": "application/json"},
-    );
-
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      print("Biller Items Response: $decoded");
-      return decoded['data'] ?? [];
-    } else {
-      print("Failed to fetch biller items: ${response.body}");
-      return [];
     }
   }
 
@@ -381,7 +343,7 @@ class ApiService {
     required String bankCode,
   }) async {
     final response = await http.post(
-      Uri.parse("$baseUrl/resolve-account"),
+      Uri.parse("$baseUrl/resolve-account-name"),
       headers: {"Content-Type": "application/json"},
       body: json.encode({
         "account_number": accountNumber,
@@ -403,13 +365,13 @@ class ApiService {
   }
 
   // Initiate bank transfer
-  Future<Map<String, dynamic>> transfer({
+  Future<bool> transfer({
     context,
-    required String accountBank,
-    required String accountNumber,
-    required double amount,
+    String? accountBank,
+    String? accountNumber,
+    double? amount,
     String currency = "NGN",
-    String narration = "Wallet Transfer",
+    String? description,
     String? country,
     String? swiftCode,
     String? beneficiaryName,
@@ -417,36 +379,129 @@ class ApiService {
     String? beneficiaryCity,
   }) async {
     final Map<String, dynamic> payload = {
-      "account_bank": accountBank,
       "account_number": accountNumber,
       "amount": amount,
       "currency": currency,
-      "narration": narration,
+      "description": description,
     };
 
-    // Optional fields (only if backend supports them)
+    // Optional fields
+    if (accountBank != null) payload["account_bank"] = accountBank;
     if (country != null) payload["country"] = country;
     if (swiftCode != null) payload["swift_code"] = swiftCode;
     if (beneficiaryName != null) payload["beneficiary_name"] = beneficiaryName;
-    if (beneficiaryAddress != null) {
+    if (beneficiaryAddress != null)
       payload["beneficiary_address"] = beneficiaryAddress;
-    }
     if (beneficiaryCity != null) payload["beneficiary_city"] = beneficiaryCity;
 
-    final response = await http.post(
-      Uri.parse("$baseUrl/transfer"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(payload),
-    );
+    // ✅ Required for INTERNATIONAL transfers
+    payload["meta"] = [
+      {
+        "sender": "Transact Point",
+        "sender_country": "NG",
+        "receiver_country": country,
+        "purpose": description ?? "Transfer",
+      },
+    ];
 
-    final body = json.decode(response.body);
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/transfer"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(payload),
+      );
 
-    if (response.statusCode == 200 && body["success"] == true) {
-      showCustomSnackBar(context, body["message"] ?? "Transfer successful");
-      return body;
-    } else {
-      showCustomSnackBar(context, body["message"] ?? "Transfer failed");
-      return {};
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 &&
+          (body["success"] == true || body["status"] == "success")) {
+        showCustomSnackBar(context, body["message"] ?? "Transfer successful");
+        return true;
+      } else {
+        showCustomSnackBar(context, body["message"] ?? "Transfer failed");
+        return false;
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Transfer failed: $e");
+      return false;
+    }
+  }
+
+  /// Convert Currency (calls Laravel which proxies Flutterwave rates API)
+  Future<Map<String, dynamic>?> convertBalance({
+    context,
+    required String amount,
+    required String fromCurrency,
+    required String toCurrency,
+  }) async {
+    try {
+      final url = Uri.parse(
+        "$baseUrl/convert?amount=$amount&from_currency=$fromCurrency&to_currency=$toCurrency",
+      );
+
+      final response = await http.get(url);
+      final body = json.decode(response.body);
+
+      if (response.statusCode == 200 && body["success"] == true) {
+        // ✅ Show successful conversion
+        showCustomSnackBar(
+          context,
+          "Converted: ${body["converted_amount"]} ${toCurrency}",
+        );
+        return body;
+      } else {
+        // ❌ Handle backend or Flutterwave error
+        showCustomSnackBar(context, body["message"] ?? "Conversion failed");
+        return null;
+      }
+    } catch (e) {
+      print("Conversion error: $e");
+      showCustomSnackBar(context, "Conversion error: $e");
+      return null;
+    }
+  }
+
+  // Fund my account
+  Future<Map<String, dynamic>> fundAccount({
+    context,
+    required String amount,
+    String currency = "NGN",
+    String? email,
+    String? id,
+    String? redirectUrl,
+    String? code,
+    String? currencySign,
+    String? country,
+  }) async {
+    final url = Uri.parse("$baseUrl/fund-account");
+
+    final body = {
+      "amount": amount,
+      "currency": currency,
+      if (id != null) "id": id,
+      if (email != null) "email": email,
+      if (redirectUrl != null) "redirect_url": redirectUrl,
+      if (code != null) "code": code,
+      if (currencySign != null) "currencySign": currencySign,
+      if (country != null) "country": country,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        return data;
+      } else {
+        return {"status": "error", "message": data['message'] ?? "Failed"};
+      }
+    } catch (e) {
+      return {"status": "error", "message": e.toString()};
     }
   }
 }

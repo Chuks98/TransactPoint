@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import './screens/custom-widgets/appbar.dart';
 import './screens/custom-widgets/sidebar.dart';
 import './screens/custom-widgets/bottom-navbar.dart';
@@ -35,7 +36,23 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex; // 👈 start from correct tab
+    _currentIndex = widget.initialIndex;
+
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    // secure storage (or auth service) check
+    final isLoggedIn = await const FlutterSecureStorage().read(
+      key: 'is_logged_in',
+    );
+
+    if (isLoggedIn != 'true') {
+      // user not logged in → go to login
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
+    }
   }
 
   @override
@@ -45,12 +62,12 @@ class _MainLayoutState extends State<MainLayout> {
         title: widget.title,
         showBackButton: widget.showBackButton,
       ),
-      drawer: const CustomSidebar(),
+      drawer: CustomSidebar(),
       body: widget.body,
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {
-          if (_currentIndex == index) return; // avoid reloading same tab
+          if (_currentIndex == index) return;
           Navigator.pushReplacementNamed(context, _routes[index]);
         },
       ),

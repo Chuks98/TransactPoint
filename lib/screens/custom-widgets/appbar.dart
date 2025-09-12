@@ -27,10 +27,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: const Icon(Icons.account_balance_wallet_outlined),
           color: theme.colorScheme.onPrimary,
           onPressed: () {
-            // Navigate to wallet screen (or show snackbar for now)
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Wallet icon pressed")),
-            );
+            Navigator.pushNamed(context, '/wallet');
           },
         ),
       ],

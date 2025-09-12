@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
+import './confirm-dialog.dart'; // adjust path
+import '../../services/user-api-services.dart'; // your logout function
 
 class CustomSidebar extends StatelessWidget {
-  const CustomSidebar({super.key});
+  CustomSidebar({super.key});
+
+  final RegisterService _authService = RegisterService();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Drawer(
-      backgroundColor: theme.colorScheme.background, // uses theme background
+      backgroundColor: theme.colorScheme.background,
       child: Column(
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary, // theme primary color
-            ),
+            decoration: BoxDecoration(color: theme.colorScheme.primary),
             child: Center(
               child: Text(
                 "Welcome",
                 style: theme.textTheme.titleLarge?.copyWith(
-                  color:
-                      theme
-                          .colorScheme
-                          .onPrimary, // automatically contrasts primary
+                  color: theme.colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -42,28 +41,53 @@ class CustomSidebar extends StatelessWidget {
             onTap: () {},
           ),
           ListTile(
+            leading: Icon(Icons.wallet, color: theme.colorScheme.primary),
+            title: Text("Account", style: theme.textTheme.bodyMedium),
+            onTap: () {
+              Navigator.pushNamed(context, '/wallet');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.support, color: theme.colorScheme.primary),
+            title: Text("Support", style: theme.textTheme.bodyMedium),
+            onTap: () {
+              Navigator.pushNamed(context, '/support');
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.settings, color: theme.colorScheme.primary),
             title: Text("Settings", style: theme.textTheme.bodyMedium),
             onTap: () {},
           ),
-          ListTile(
-            leading: Icon(Icons.settings, color: theme.colorScheme.primary),
-            title: Text("Register", style: theme.textTheme.bodyMedium),
-            onTap: () {
-              // Navigator.pushReplacementNamed(context, '/register');
-              Navigator.pushNamed(context, '/register');
-            },
-          ),
+
           const Spacer(),
           ListTile(
-            leading: Icon(Icons.logout, color: Colors.redAccent),
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
             title: Text(
               "Logout",
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: Colors.redAccent,
               ),
             ),
-            onTap: () {},
+            onTap: () {
+              showDialog(
+                context: context,
+                builder:
+                    (ctx) => ConfirmDialog(
+                      title: "Logout?",
+                      content: const [
+                        Text("Are you sure you want to log out?"),
+                      ],
+                      confirmText: "Logout",
+                      cancelText: "Cancel",
+                      onConfirm: () {
+                        Navigator.of(ctx).pop(); // close dialog
+                        _authService.logout(context);
+                      },
+                      onCancel: () => Navigator.of(ctx).pop(),
+                    ),
+              );
+            },
           ),
         ],
       ),

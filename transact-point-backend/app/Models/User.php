@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models; // 👈 you’re missing this line
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Foundation\Auth\User as Authenticatable; // 👈 this is the right class
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -17,12 +16,12 @@ class User extends Authenticatable
         'phoneNumber',
         'email',
         'password',
-        'walletId',
-        'walletBalance',
+        'biometric', // ✅ replaced walletId & walletBalance
     ];
 
     // Relationship with transactions
-    public function transactions() {
+    public function transactions()
+    {
         return $this->hasMany(Transaction::class);
     }
 }

@@ -76,18 +76,26 @@ Widget bankDropdown({
   required bool isLoadingBanks,
   required List<Map<String, String>>? banks,
   required String? selectedBankCode,
+  required String? selectedBankName,
   required void Function(String?) onChanged,
 }) {
   if (isLoadingBanks) {
-    return Row(
-      children: const [
-        SizedBox(
-          width: 16,
-          height: 22,
-          child: CircularProgressIndicator(strokeWidth: 2),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: const [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 8),
+            Text("Fetching banks..."),
+          ],
         ),
-        SizedBox(width: 8),
-        Text("Fetching banks..."),
+        const SizedBox(height: 8),
+        const LinearProgressIndicator(minHeight: 4),
       ],
     );
   }
@@ -113,7 +121,11 @@ Widget bankDropdown({
           .toList();
     },
     itemAsString: (Map<String, String>? b) => b?['name'] ?? '',
-    onChanged: (selected) => onChanged(selected?['code']),
+    onChanged:
+        (selected) => {
+          onChanged(selected?['code']),
+          selectedBankName = selected?['name'],
+        },
     validator:
         (val) =>
             (val == null || val['code']?.isEmpty == true)
@@ -152,15 +164,22 @@ Widget accountNumberField({
       ),
       const SizedBox(height: 8),
       if (isFetchingName)
-        Row(
-          children: const [
-            SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 8),
+                Text("Fetching account name..."),
+              ],
             ),
-            SizedBox(width: 8),
-            Text("Fetching account name..."),
+            const SizedBox(height: 8),
+            const LinearProgressIndicator(minHeight: 4),
           ],
         )
       else if (beneficiaryName != null && beneficiaryName.isNotEmpty)
@@ -169,28 +188,6 @@ Widget accountNumberField({
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
     ],
-  );
-}
-
-/// Account name display
-Widget accountName({
-  required bool isFetchingName,
-  required String? beneficiaryName,
-  ValueChanged<String>? onChanged, // 👈 allow callback
-}) {
-  if (beneficiaryName == null) return const SizedBox.shrink();
-  return Padding(
-    padding: const EdgeInsets.only(top: 8),
-    child:
-        isFetchingName
-            ? const LinearProgressIndicator()
-            : GestureDetector(
-              onTap: () => onChanged?.call(beneficiaryName),
-              child: Text(
-                "Account Name: $beneficiaryName",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
   );
 }
 

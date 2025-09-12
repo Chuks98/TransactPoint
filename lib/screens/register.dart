@@ -29,7 +29,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         phoneNumber: _phoneController.text.trim(),
       );
 
-      // Pass user to BiometricScreen instead of registering yet
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => BiometricScreen(user: user)),
@@ -67,16 +66,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _firstNameController,
-                decoration: const InputDecoration(labelText: "First Name"),
+                decoration: const InputDecoration(
+                  labelText: "First Name",
+                  prefixIcon: Icon(Icons.person), // 👈 icon added
+                ),
                 validator:
                     (value) => value!.isEmpty ? "Enter first name" : null,
               ),
               const SizedBox(height: 20),
               TextFormField(
                 controller: _lastNameController,
-                decoration: const InputDecoration(labelText: "Last Name"),
+                decoration: const InputDecoration(
+                  labelText: "Last Name",
+                  prefixIcon: Icon(Icons.person_outline), // 👈 icon added
+                ),
                 validator: (value) => value!.isEmpty ? "Enter last name" : null,
               ),
               const SizedBox(height: 20),
@@ -85,6 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const InputDecoration(
                   labelText: "Phone Number",
                   hintText: "e.g. +1 234 567 8900",
+                  prefixIcon: Icon(Icons.phone), // 👈 icon added
                 ),
                 keyboardType: TextInputType.phone,
                 validator:
@@ -98,6 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: "Confirm Phone Number",
                   hintText: "e.g. +1 234 567 8900",
                   errorText: _phoneError,
+                  prefixIcon: const Icon(Icons.phone_android), // 👈 icon added
                 ),
                 keyboardType: TextInputType.phone,
                 onChanged: _checkPhoneMatch,

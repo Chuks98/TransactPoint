@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
     _loadBiometricPreference();
     _loadUser();
 
@@ -36,6 +37,16 @@ class _LoginScreenState extends State<LoginScreen>
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final isLoggedIn = await _authService.isLoggedIn();
+    if (isLoggedIn) {
+      // Make sure we redirect only after the widget is mounted
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      }
+    }
   }
 
   Future<void> _loadUser() async {
@@ -96,11 +107,8 @@ class _LoginScreenState extends State<LoginScreen>
         setState(() => _isLoading = false);
         return;
       }
-      success = await _authService.loginWithPin(_pin);
-      showCustomSnackBar(
-        context,
-        success ? "Login successful!" : "Invalid PIN. Try again.",
-      );
+      success = await _authService.loginWithPin(context, _pin);
+
       if (!success) setState(() => _pin = '');
     }
 
