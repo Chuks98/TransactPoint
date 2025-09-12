@@ -131,53 +131,111 @@ class BillsController extends Controller
     public function purchaseAirtime(Request $request)
     {
         try {
+            // 🔹 Validate inputs
+            $request->validate([
+                'id'          => 'required|integer|exists:users,id',
+                'biller_code' => 'required|string',
+                'item_code'   => 'required|string',
+                'phone'       => 'required|string',
+                'amount'      => 'required|numeric|min:1',
+                'country'     => 'required|string|max:5',
+            ]);
+
+            $userId   = $request->id;
+            $amount   = $request->amount;
+            $country  = $request->country;
+            $billerCode = $request->biller_code;
+            $itemCode   = $request->item_code;
+
+            // 🔹 Get Wallet
+            $wallet = Wallet::where('user_id', $userId)->first();
+            if (!$wallet) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Wallet not found.'
+                ], 404);
+            }
+
+            // 🔹 Check balance
+            if ($wallet->balance < $amount) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Insufficient account balance.'
+                ], 400);
+            }
+
+            // 🔹 Check if Nigerian wallet
+            if ($wallet->code !== $country) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Airtime purchase is only for Nigerians.'
+                ], 400);
+            }
+
+            // 🔹 Prepare payload for Flutterwave
             $data = [
-                "biller_code"  => $request->input('biller_code'),
-                "item_code"    => $request->input('item_code'),
+                'id'           => $userId,
+                "biller_code"  => $billerCode,
+                "item_code"    => $itemCode,
                 "type"         => "AIRTIME",
-                "country"      => $request->input('country', 'NG'),
+                "country"      => $country,
                 "customer_id"  => $request->phone,
-                "amount"       => $request->amount,
+                "amount"       => $amount,
                 "reference"    => "txn_" . uniqid(),
                 "callback_url" => "https://yourdomain.com/webhook"
             ];
 
-            $billerCode = $request->input('biller_code');
-            $itemCode   = $request->input('item_code');
-
             \Log::info('Airtime Purchase Request: ' . json_encode($data));
 
-            if (!$billerCode || !$itemCode) {
-                \Log::error('Biller code and item code are required');
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'Biller code and item code are required'
-                ], 400);
-            }
-
+            // 🔹 Call Flutterwave API
             $response = $this->flutterwave->purchaseBill($billerCode, $itemCode, $data);
 
             \Log::info('Airtime Purchase Response: ' . json_encode($response));
 
+            // 🔹 If success, deduct wallet & log transaction
+            if (isset($response['status']) && $response['status'] === 'success') {
+                // Deduct wallet balance
+                $wallet->balance -= $amount;
+                $wallet->save();
+
+                // Save transaction
+                Transaction::create([
+                    'user_id'       => $userId,
+                    'type'          => 'Bill Payment',
+                    'amount'        => $amount,
+                    'description'   => 'Airtime Purchase',
+                    'biller_code'   => $billerCode,
+                    'item_code'     => $itemCode,
+                    'status'        => 'Successful',
+                    'currency'      => $wallet->currency,
+                    'transaction_id'=> $data['reference'],
+                    'code'          => $wallet->code,
+                    'currencySign'  => $wallet->currencySign,
+                    'country'       => $wallet->country,
+                ]);
+            }
+
             return response()->json($response);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Validation failed',
+                'errors'  => $e->errors()
+            ], 422);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            // Extract response body from Flutterwave error
             $body = $e->getResponse()->getBody()->getContents();
             $decoded = json_decode($body, true);
-
-            // Get the "message" field, fallback to full exception message
             $errorMessage = $decoded['message'] ?? $e->getMessage();
 
-            \Log::error('Error purchasing airtime: ' . $errorMessage);
+            \Log::error('Error purchasing airtime: ' . $e);
 
             return response()->json([
                 'status'  => 'error',
                 'message' => $errorMessage
             ], 500);
         } catch (\Exception $e) {
-            // Fallback for any other exception
-            \Log::error('Error purchasing airtime: ' . $e->getMessage());
+            \Log::error('Error purchasing airtime: ' . $e);
             return response()->json([
                 'status'  => 'error',
                 'message' => $e->getMessage()
@@ -187,53 +245,110 @@ class BillsController extends Controller
 
 
 
+
     // ✅ Purchase Data with proper error handling
     public function purchaseData(Request $request)
     {
-        \Log::info('Display amount: ' . $request->amount);
-
         try {
+            // 🔹 Validate inputs
+            $request->validate([
+                'id'          => 'required|integer|exists:users,id',
+                'biller_code' => 'required|string',
+                'item_code'   => 'required|string',
+                'phone'       => 'required|string',
+                'amount'      => 'required|numeric|min:1',
+                'country'     => 'required|string|max:5',
+            ]);
+
+            $userId     = $request->id;
+            $amount     = $request->amount;
+            $country    = $request->country;
+            $billerCode = $request->biller_code;
+            $itemCode   = $request->item_code;
+
+            // 🔹 Get Wallet
+            $wallet = Wallet::where('user_id', $userId)->first();
+            if (!$wallet) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Wallet not found for this user.'
+                ], 404);
+            }
+
+            // 🔹 Check balance
+            if ($wallet->balance < $amount) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Insufficient wallet balance.'
+                ], 400);
+            }
+
+            // 🔹 Check if Nigerian wallet
+            if ($wallet->code !== $country) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Data purchase only for Nigerians.'
+                ], 400);
+            }
+
+            // 🔹 Prepare payload for Flutterwave
             $data = [
-                "biller_code"  => $request->input('biller_code'),
-                "item_code"    => $request->input('item_code'),
+                'id'           => $userId,
+                "biller_code"  => $billerCode,
+                "item_code"    => $itemCode,
                 "type"         => "DATA",
-                "country"      => $request->input('country', 'NG'),
+                "country"      => $country,
                 "customer_id"  => $request->phone,
-                "amount"       => $request->amount,
+                "amount"       => $amount,
                 "reference"    => "txn_" . uniqid(),
                 "callback_url" => "https://yourdomain.com/webhook"
             ];
 
-            $billerCode = $request->input('biller_code');
-            $itemCode   = $request->input('item_code');
-
-            // Validate required fields
-            if (!$billerCode || !$itemCode) {
-                \Log::error('Biller code and item code are required for data purchase');
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'Biller code and item code are required'
-                ], 400);
-            }
-
             \Log::info('Data Purchase Request: ' . json_encode($data));
 
-            // Attempt to purchase data
+            // 🔹 Call Flutterwave API
             $response = $this->flutterwave->purchaseBill($billerCode, $itemCode, $data);
 
             \Log::info('Data Purchase Response: ' . json_encode($response));
 
+            // 🔹 If success, deduct wallet & log transaction
+            if (isset($response['status']) && $response['status'] === 'success') {
+                // Deduct wallet balance
+                $wallet->balance -= $amount;
+                $wallet->save();
+
+                // Save transaction
+                Transaction::create([
+                    'user_id'       => $userId,
+                    'type'          => 'Bill Payment',
+                    'amount'        => $amount,
+                    'description'   => 'Data Purchase',
+                    'biller_code'   => $billerCode,
+                    'item_code'     => $itemCode,
+                    'status'        => 'Successful',
+                    'currency'      => $wallet->currency,
+                    'transaction_id'=> $data['reference'],
+                    'code'          => $wallet->code,
+                    'currencySign'  => $wallet->currencySign,
+                    'country'       => $wallet->country,
+                ]);
+            }
+
             return response()->json($response);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Validation failed',
+                'errors'  => $e->errors()
+            ], 422);
+
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            // Extract response body from Flutterwave error
             $body = $e->getResponse()->getBody()->getContents();
             $decoded = json_decode($body, true);
-
-            // Get the "message" field, fallback to full exception message
             $errorMessage = $decoded['message'] ?? $e->getMessage();
 
-            \Log::error('Error purchasing data: ' . $errorMessage);
+            \Log::error('Error purchasing data: ' . $e);
 
             return response()->json([
                 'status'  => 'error',
@@ -241,7 +356,6 @@ class BillsController extends Controller
             ], 500);
 
         } catch (\Exception $e) {
-            // Fallback for any other exception
             \Log::error('Error purchasing data: ' . $e->getMessage());
             return response()->json([
                 'status'  => 'error',
@@ -252,50 +366,111 @@ class BillsController extends Controller
 
 
 
+
     // ✅ Purchase Cable subscription with proper error handling
     public function purchaseCable(Request $request)
     {
-        \Log::info('CableTV Purchase Amount: ' . $request->amount);
-
         try {
+            // 🔹 Validate inputs
+            $request->validate([
+                'id'          => 'required|integer|exists:users,id',
+                'biller_code' => 'required|string',
+                'item_code'   => 'required|string',
+                'smartcard'   => 'required|string',
+                'amount'      => 'required|numeric|min:1',
+                'country'     => 'required|string|max:5',
+            ]);
+
+            $userId     = $request->id;
+            $amount     = $request->amount;
+            $country    = $request->country;
+            $billerCode = $request->biller_code;
+            $itemCode   = $request->item_code;
+            $smartCard  = $request->smartcard;
+
+            // 🔹 Get Wallet
+            $wallet = Wallet::where('user_id', $userId)->first();
+            if (!$wallet) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Wallet not found for this user.'
+                ], 404);
+            }
+
+            // 🔹 Check balance
+            if ($wallet->balance < $amount) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Insufficient wallet balance.'
+                ], 400);
+            }
+
+            // 🔹 Check if Nigerian wallet
+            if ($wallet->code !== $country) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Cable purchase only for Nigerians.'
+                ], 400);
+            }
+
+            // 🔹 Prepare payload for Flutterwave
             $data = [
-                "biller_code"  => $request->input('biller_code'),
-                "item_code"    => $request->input('item_code'),
+                'id'           => $userId,
+                "biller_code"  => $billerCode,
+                "item_code"    => $itemCode,
                 "type"         => "CABLE",
-                "country"      => $request->input('country', 'NG'),
-                "customer_id"  => $request->smartcard, // SmartCard Number
-                "amount"       => $request->amount,
+                "country"      => $country,
+                "customer_id"  => $smartCard, // SmartCard number
+                "amount"       => $amount,
                 "reference"    => "txn_" . uniqid(),
                 "callback_url" => "https://yourdomain.com/webhook"
             ];
 
-            $billerCode = $request->input('biller_code');
-            $itemCode   = $request->input('item_code');
-            $smartCard  = $request->input('smartcard');
-
-            // Validate required fields
-            if (!$billerCode || !$itemCode || !$smartCard) {
-                \Log::error('Biller code, item code, and SmartCard number are required for cable purchase');
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'Biller code, item code, and SmartCard number are required'
-                ], 400);
-            }
-
             \Log::info('Cable Purchase Request: ' . json_encode($data));
 
-            // Attempt to purchase cable subscription via Flutterwave
+            // 🔹 Call Flutterwave API
             $response = $this->flutterwave->purchaseBill($billerCode, $itemCode, $data);
 
             \Log::info('Cable Purchase Response: ' . json_encode($response));
 
+            // 🔹 If success, deduct wallet & log transaction
+            if (isset($response['status']) && $response['status'] === 'success') {
+                // Deduct wallet balance
+                $wallet->balance -= $amount;
+                $wallet->save();
+
+                // Save transaction
+                Transaction::create([
+                    'user_id'        => $userId,
+                    'type'           => 'Bill Payment',
+                    'amount'         => $amount,
+                    'description'    => 'Cable Subscription',
+                    'biller_code'    => $billerCode,
+                    'item_code'      => $itemCode,
+                    'status'         => 'Successful',
+                    'currency'       => $wallet->currency,
+                    'transaction_id' => $data['reference'],
+                    'code'           => $wallet->code,
+                    'currencySign'   => $wallet->currencySign,
+                    'country'        => $wallet->country,
+                ]);
+            }
+
             return response()->json($response);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Validation failed',
+                'errors'  => $e->errors()
+            ], 422);
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $body = $e->getResponse()->getBody()->getContents();
             $decoded = json_decode($body, true);
             $errorMessage = $decoded['message'] ?? $e->getMessage();
-            \Log::error('Error purchasing cable: ' . $errorMessage);
+
+            \Log::error('Error purchasing cable: ' . $e);
 
             return response()->json([
                 'status'  => 'error',
@@ -315,52 +490,113 @@ class BillsController extends Controller
 
 
 
+
     // ✅ Purchase Electricity subscription with proper error handling
     public function purchaseElectricity(Request $request)
     {
-        \Log::info('Electricity Purchase Amount: ' . $request->amount);
+        \Log::info('Electricity Purchase Request: ' . json_encode($request->all()));
 
         try {
+            // 🔹 Validate inputs
+            $request->validate([
+                'id'           => 'required|integer|exists:users,id',
+                'biller_code'  => 'required|string',
+                'item_code'    => 'required|string',
+                'meter_number' => 'required|string',
+                'amount' => 'required|numeric|min:0',
+                'country'      => 'required|string|max:5',
+            ]);
+
+            $userId     = $request->id;
+            $amount     = $request->amount;
+            $country    = $request->country;
+            $billerCode = $request->biller_code;
+            $itemCode   = $request->item_code;
+            $meter      = $request->meter_number;
+
+            // 🔹 Get Wallet
+            $wallet = Wallet::where('user_id', $userId)->first();
+            if (!$wallet) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Wallet not found for this user.'
+                ], 404);
+            }
+
+            // 🔹 Check balance
+            if ($wallet->balance < $amount) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Insufficient wallet balance.'
+                ], 400);
+            }
+
+            // 🔹 Check if Nigerian wallet
+            if ($wallet->code !== $country) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Electricity purchase only for Nigerians.'
+                ], 400);
+            }
+
+            // 🔹 Prepare payload for Flutterwave
             $data = [
-                "biller_code"  => $request->input('biller_code'),
-                "item_code"    => $request->input('item_code'),
+                'id'           => $userId,
+                "biller_code"  => $billerCode,
+                "item_code"    => $itemCode,
                 "type"         => "ELECTRICITY",
-                "country"      => $request->input('country', 'NG'),
-                "customer_id"  => $request->meter_number, // Meter Number
-                // "amount"       => $request->amount,
-                "amount"       => 3500,
+                "country"      => $country,
+                "customer_id"  => $meter,
+                "amount"       => $amount,
                 "reference"    => "txn_" . uniqid(),
                 "callback_url" => "https://yourdomain.com/webhook"
             ];
 
-            $billerCode = $request->input('biller_code');
-            $itemCode   = $request->input('item_code');
-            $meter      = $request->input('meter_number');
             \Log::info('Electricity Purchase Request: ' . json_encode($data));
 
-            // Validate required fields
-            if (!$billerCode || !$itemCode || !$meter) {
-                \Log::error('Biller code, item code, and Meter number are required for electricity purchase');
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'Biller code, item code, and Meter number are required'
-                ], 400);
-            }
-
-            \Log::info('Electricity Purchase Request: ' . json_encode($data));
-
-            // Attempt to purchase electricity via Flutterwave
+            // 🔹 Call Flutterwave API
             $response = $this->flutterwave->purchaseBill($billerCode, $itemCode, $data);
 
             \Log::info('Electricity Purchase Response: ' . json_encode($response));
 
+            // 🔹 If success, deduct wallet & log transaction
+            if (isset($response['status']) && $response['status'] === 'success') {
+                // Deduct wallet balance
+                $wallet->balance -= $amount;
+                $wallet->save();
+
+                // Save transaction
+                Transaction::create([
+                    'user_id'       => $userId,
+                    'type'          => 'Bill Payment',
+                    'amount'        => $amount,
+                    'description'   => 'Electricity Purchase',
+                    'biller_code'   => $billerCode,
+                    'item_code'     => $itemCode,
+                    'status'        => 'Successful',
+                    'currency'      => $wallet->currency,
+                    'transaction_id'=> $data['reference'],
+                    'code'          => $wallet->code,
+                    'currencySign'  => $wallet->currencySign,
+                    'country'       => $wallet->country,
+                ]);
+            }
+
             return response()->json($response);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Validation failed',
+                'errors'  => $e->errors()
+            ], 422);
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $body = $e->getResponse()->getBody()->getContents();
             $decoded = json_decode($body, true);
             $errorMessage = $decoded['message'] ?? $e->getMessage();
-            \Log::error('Error purchasing electricity: ' . $errorMessage);
+
+            \Log::error('Error purchasing electricity: ' . $e);
 
             return response()->json([
                 'status'  => 'error',
@@ -369,13 +605,13 @@ class BillsController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error purchasing electricity: ' . $e->getMessage());
-
             return response()->json([
                 'status'  => 'error',
                 'message' => $e->getMessage()
             ], 500);
         }
     }
+
 
 
 

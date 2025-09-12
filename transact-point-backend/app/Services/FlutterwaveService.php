@@ -177,16 +177,11 @@ class FlutterwaveService
 
     public function purchaseBill($billerCode, $itemCode, $payload)
     {
-        try {
-            $client = $this->authorizedClientV3(); 
-            $response = $client->post("billers/{$billerCode}/items/{$itemCode}/payment", [
-                'json' => $payload
-            ]);
-            return json_decode($response->getBody(), true);
-        } catch (\Exception $e) {
-            Log::error("Error purchasing bill: " . $e->getMessage());
-            return ['status' => 'error', 'message' => 'Unable to complete bill payment at this time.'];
-        }
+        $client = $this->authorizedClientV3(); 
+        $response = $client->post("billers/{$billerCode}/items/{$itemCode}/payment", [
+            'json' => $payload
+        ]);
+        return json_decode($response->getBody(), true);
     }
 
     public function resolveAccountName($accountNumber, $bankCode)
