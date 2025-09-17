@@ -2,11 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:transact_point/screens/custom-widgets/date-formatter.dart';
 import 'package:transact_point/theme.dart';
 import 'package:transact_point/utilities/countries.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:transact_point/services/flutterwave-api-services.dart';
 import 'package:transact_point/services/user-api-services.dart';
 import 'package:transact_point/screens/custom-widgets/wallet-widgets.dart';
 import 'custom-widgets/snackbar.dart';
@@ -22,10 +21,14 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _isBalanceVisible = true;
   Map<String, dynamic>? userData;
   Map<String, dynamic>? userWallet;
+  List<dynamic> transactions = [];
+  bool _fetchingTransactions = false;
 
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
   final TextEditingController _amountController = TextEditingController();
-  bool _loading = false;
+
+  bool _loading = false; // for wallet creation
+  bool _fetchingWallet = true; // ✅ for wallet fetch state
 
   Map<String, dynamic>? selectedCountry;
 
@@ -42,10 +45,12 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadUserData(); // fetch fresh data whenever dependencies change
+    _loadUserData();
   }
 
   Future<void> _loadUserData() async {
+    setState(() => _fetchingWallet = true); // ✅ mark fetching start
+
     final userJson = await secureStorage.read(key: 'logged_in_user');
     if (userJson != null) {
       setState(() {
@@ -54,8 +59,11 @@ class _WalletScreenState extends State<WalletScreen> {
       });
       if (id != null) {
         await _fetchUserWallet(id!);
+        await _fetchRecentTransactions(id!); // ✅ also fetch transactions
       }
     }
+
+    setState(() => _fetchingWallet = false); // ✅ mark fetching done
   }
 
   Future<void> _fetchUserWallet(String userId) async {
@@ -68,6 +76,20 @@ class _WalletScreenState extends State<WalletScreen> {
       }
     } catch (e) {
       showCustomSnackBar(context, "Failed to fetch wallet: $e");
+    }
+  }
+
+  Future<void> _fetchRecentTransactions(String userId) async {
+    setState(() => _fetchingTransactions = true);
+    try {
+      final result = await RegisterService().getUserRecentTransactions(userId);
+      setState(() {
+        transactions = result;
+      });
+    } catch (e) {
+      showCustomSnackBar(context, "Failed to fetch transactions: $e");
+    } finally {
+      setState(() => _fetchingTransactions = false);
     }
   }
 
@@ -113,8 +135,17 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (userWallet != null) return buildFundingScreen();
+    /// CASE 1: Still fetching wallet → show loader
+    if (_fetchingWallet) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
+    /// CASE 2: Wallet exists → show funding screen
+    if (userWallet != null) {
+      return buildFundingScreen();
+    }
+
+    /// CASE 3: No wallet → show create wallet screen
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -201,7 +232,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       Navigator.pushNamed(
                         context,
                         '/edit-account',
-                        arguments: {'currentCurrency': walletCurrency},
+                        arguments: {
+                          'currentCurrency': walletCurrency,
+                          'balance': userWallet!['balance'],
+                          'currencySign': userWallet?['currencySign'],
+                        },
                       ).then((_) {
                         _loadUserData(); // refresh wallet after returning
                       });
@@ -255,44 +290,76 @@ class _WalletScreenState extends State<WalletScreen> {
               const SizedBox(height: 24),
 
               /// Recent Transactions
-              Text("Recent Transactions", style: textTheme.titleMedium),
-              const SizedBox(height: 12),
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 5,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: colorScheme.primary.withOpacity(0.1),
-                      child: const Icon(
-                        Icons.monetization_on,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    title: Text(
-                      "Transaction ${index + 1}",
-                      style: textTheme.bodyMedium,
-                    ),
-                    subtitle: Text(
-                      "Sep ${10 + index}, 2025",
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Recent Transactions", style: textTheme.titleMedium),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/transactions').then((_) {
+                        _loadUserData();
+                      });
+                    },
+                    child: Text(
+                      "See More",
                       style: textTheme.bodySmall!.copyWith(
-                        color: AppColors.grey,
-                      ),
-                    ),
-                    trailing: Text(
-                      index.isEven
-                          ? "- ${walletCurrencySign}50.00"
-                          : "+ ${walletCurrencySign}200.00",
-                      style: textTheme.bodyMedium!.copyWith(
-                        color: index.isEven ? Colors.red : AppColors.primary,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
+              const SizedBox(height: 12),
+
+              if (_fetchingTransactions)
+                const Center(child: CircularProgressIndicator())
+              else if (transactions.isEmpty)
+                const Text("No transactions yet.")
+              else
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: transactions.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final tx = transactions[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: colorScheme.primary.withOpacity(0.1),
+                        child: Icon(
+                          tx['status'] != 'successful'
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          color:
+                              tx['status'] != 'successful'
+                                  ? Colors.red
+                                  : AppColors.primary,
+                        ),
+                      ),
+                      title: Text(
+                        tx['description'] ?? 'Transaction',
+                        style: textTheme.bodyMedium,
+                      ),
+                      subtitle: Text(
+                        DateFormatter.formatDate(tx['created_at']),
+                        style: textTheme.bodySmall!.copyWith(
+                          color: AppColors.grey,
+                        ),
+                      ),
+                      trailing: Text(
+                        "${tx['status'] != 'successful' ? '-' : '+'} ${tx['currencySign']}${tx['amount']}",
+                        style: textTheme.bodyMedium!.copyWith(
+                          color:
+                              tx['status'] != 'successful'
+                                  ? Colors.red
+                                  : AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    );
+                  },
+                ),
             ],
           ),
         ),

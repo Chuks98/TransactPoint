@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../theme.dart';
 import './custom-widgets/carousel.dart';
 import '../services/flutterwave-api-services.dart';
+import '../services/user-api-services.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,10 +16,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isBalanceVisible = true;
-  final String userFullName = "Chukwuma Onyedika";
-  final double userBalance = 125000.75; // in naira
+  String userFullName = "";
+  String userBalance = "0.0";
+  String? currencySign; // default
+  String? userId;
 
+  final storage = const FlutterSecureStorage();
   final ApiService apiService = ApiService();
+  final RegisterService registerService = RegisterService();
+  final NumberFormat currencyFormatter = NumberFormat("#,##0.00", "en_US");
+
   Map<String, dynamic> _categories = {};
   final Map<String, dynamic> _customMenus = {
     "Transfer": {},
@@ -28,7 +38,40 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     _loadCategories(context);
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      // 🔹 Get stored user JSON
+      String? userJson = await storage.read(key: "logged_in_user");
+      if (userJson == null) return;
+
+      final userMap = jsonDecode(userJson);
+      final firstName = userMap['firstName'] ?? "";
+      final lastName = userMap['lastName'] ?? "";
+      userId = userMap['id']?.toString();
+
+      setState(() {
+        userFullName = "$firstName $lastName".trim();
+      });
+
+      // 🔹 Fetch wallet from API
+      if (userId != null) {
+        final walletRes = await registerService.getWallet(userId!);
+        print(walletRes);
+        if (walletRes['status'] == 'success' && walletRes['data'] != null) {
+          final walletData = walletRes['data'];
+          setState(() {
+            userBalance = (walletData['balance']).toString();
+            currencySign = walletData['currencySign']; // fallback
+          });
+        }
+      }
+    } catch (e) {
+      print("🚨 _loadUserData error: $e");
+    }
   }
 
   Future<void> _loadCategories(BuildContext context) async {
@@ -68,11 +111,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: RefreshIndicator(
-        // 🔹 Pull-to-refresh wrapper
-        onRefresh: () => _loadCategories(context),
+        onRefresh: () async {
+          await _loadUserData();
+          await _loadCategories(context);
+        },
         child: SingleChildScrollView(
-          physics:
-              const AlwaysScrollableScrollPhysics(), // Needed for RefreshIndicator
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +149,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
               /// 🔹 User Info
               Text(
-                userFullName.toUpperCase(),
+                userFullName.isNotEmpty
+                    ? userFullName.toUpperCase()
+                    : "LOADING...",
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -115,8 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     _isBalanceVisible
-                        ? "₦${userBalance.toStringAsFixed(2)}"
-                        : "₦******",
+                        ? "$currencySign ${currencyFormatter.format(double.tryParse(userBalance) ?? 0)}"
+                        : "$currencySign******",
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -142,69 +188,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 24),
 
-              /// 🔹 Show only category names
+              /// 🔹 Categories
               !_loading && _categories.isNotEmpty
                   ? Column(
                     children: [
                       for (int i = 0; i < _categories.keys.length; i += 3)
                         _buildServiceGrid(
-                          _categories.keys
-                              .skip(i)
-                              .take(3) // 🔹 Take 3 items per row
-                              .map((categoryName) {
-                                return Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: InkWell(
-                                    onTap: () {
-                                      final routeName =
-                                          categoryName.toLowerCase();
-
-                                      if (_customMenus.containsKey(
-                                        categoryName,
-                                      )) {
-                                        // 🔹 Navigate to your manual screen
-                                        Navigator.pushNamed(
-                                          context,
-                                          '/$routeName',
-                                        );
-                                      } else {
-                                        // 🔹 Navigate to API-based category
-                                        Navigator.pushNamed(
-                                          context,
-                                          '/$routeName',
-                                        );
-                                      }
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            _getIconForCategory(categoryName),
-                                            color: AppColors.primary,
-                                            size: 36,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            categoryName.toUpperCase(),
-                                            textAlign: TextAlign.center,
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
+                          _categories.keys.skip(i).take(3).map((categoryName) {
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: InkWell(
+                                onTap: () {
+                                  final routeName = categoryName.toLowerCase();
+                                  Navigator.pushNamed(context, '/$routeName');
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        _getIconForCategory(categoryName),
+                                        color: AppColors.primary,
+                                        size: 36,
                                       ),
-                                    ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        categoryName.toUpperCase(),
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              })
-                              .toList(),
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                     ],
                   )

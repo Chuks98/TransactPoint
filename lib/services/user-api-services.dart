@@ -14,6 +14,29 @@ class RegisterService {
   final LocalAuthentication auth = LocalAuthentication();
   final String _key = 'logged_in_user';
 
+  static String? userId;
+  static String? firstName;
+  static String? lastName;
+  static String? phoneNumber;
+  static String? userFullName;
+
+  /// Load stored user data
+  Future<void> loadUserData() async {
+    try {
+      String? userJson = await secureStorage.read(key: "logged_in_user");
+      if (userJson == null) return;
+
+      final userMap = jsonDecode(userJson);
+      userId = userMap['id']?.toString();
+      firstName = userMap['firstName'] ?? "";
+      lastName = userMap['lastName'] ?? "";
+      phoneNumber = userMap['phoneNumber'] ?? "";
+      userFullName = "$firstName $lastName".trim();
+    } catch (e) {
+      print("🚨 loadUserData error: $e");
+    }
+  }
+
   /// get logged in user
   Future<Map<String, dynamic>?> getLoggedInUser() async {
     final data = await secureStorage.read(key: _key);
@@ -300,5 +323,66 @@ class RegisterService {
       print("🚨 updateAccount error: $e");
       return {'status': 'error', 'message': e.toString()};
     }
+  }
+
+  // Fetch recent transactions - last 10
+  Future<List<dynamic>> getUserRecentTransactions(String userId) async {
+    try {
+      final url = Uri.parse('$baseUrl/user/recent-transactions/$userId');
+      print("📡 Fetching last 10 transactions for user $userId from $url");
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['status'] == 'success') {
+          print(
+            "✅ Transactions fetched successfully (${body['data'].length} items)",
+          );
+          return body['data'];
+        } else {
+          print("⚠️ API responded with failure: ${body['message'] ?? body}");
+        }
+      } else {
+        print("❌ Failed with status: ${response.statusCode}");
+      }
+    } catch (e, stacktrace) {
+      print("🔥 Error fetching transactions: $e");
+      print(stacktrace);
+    }
+    return [];
+  }
+
+  // ✅ Fetch user transactions
+  Future<Map<String, dynamic>> getUserTransactions(
+    String userId, {
+    int page = 1,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/user/transactions/$userId?page=$page');
+      print(
+        "📡 Fetching page $page of transactions for user $userId from $url",
+      );
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['status'] == 'success') {
+          print(
+            "✅ Page $page fetched with ${body['data']['data'].length} items",
+          );
+          return body['data'];
+        } else {
+          print("⚠️ API responded with failure: ${body['message'] ?? body}");
+        }
+      } else {
+        print("❌ Failed with status: ${response.statusCode}");
+      }
+    } catch (e, stacktrace) {
+      print("🔥 Error fetching transactions: $e");
+      print(stacktrace);
+    }
+    return {"data": [], "current_page": page, "next_page_url": null};
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/custom-widgets/snackbar.dart';
 import 'package:transact_point/services/flutterwave-api-services.dart';
+import 'package:transact_point/services/user-api-services.dart';
 import './custom-widgets/cable-widgets.dart'; // You can rename this if needed
 
 class CableScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class CableScreen extends StatefulWidget {
 
 class _CableScreenState extends State<CableScreen> {
   final ApiService _billService = ApiService();
+  final RegisterService _registerService = RegisterService();
   String? _selectedProvider; // Startimes, GOTV, DSTV
   bool _isLoading = true;
   final TextEditingController _smartCardController = TextEditingController();
@@ -24,10 +26,19 @@ class _CableScreenState extends State<CableScreen> {
   @override
   void initState() {
     super.initState();
+    _registerService.loadUserData().then((_) {
+      setState(() {}); // refresh UI after load
+    });
     _loadCablePlans();
   }
 
   Future<void> _loadCablePlans() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showCustomSnackBar(
+        context,
+        "This is the user id: ${RegisterService.userId.toString()}",
+      );
+    });
     setState(() => _isLoading = true);
 
     try {
@@ -83,6 +94,7 @@ class _CableScreenState extends State<CableScreen> {
 
     final result = await _billService.purchaseCable(
       context: context,
+      id: RegisterService.userId!,
       smartCard: smartCard,
       billerCode: _selectedBillerCode!,
       itemCode: _selectedItemCode!,

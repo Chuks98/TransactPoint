@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/custom-widgets/confirm-dialog.dart';
 import 'package:transact_point/screens/custom-widgets/loader-dialog.dart';
@@ -118,7 +119,10 @@ class _TransferScreenState extends State<TransferScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              promoBanner(),
+              FadeInDown(
+                delay: const Duration(milliseconds: 100),
+                child: promoBanner(),
+              ),
               const SizedBox(height: 24),
               Form(
                 key: _formKey,
@@ -127,145 +131,180 @@ class _TransferScreenState extends State<TransferScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     // Country selector
-                    countryDropdown(
-                      selectedCountry: selectedCountry,
-                      countryList:
-                          countryList
-                              .map(
-                                (e) => e.map(
-                                  (key, value) =>
-                                      MapEntry(key, value.toString()),
-                                ),
-                              )
-                              .toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          _onCountrySelected(val);
-                        }
-                        _checkFormValidity();
-                      },
+                    BounceInLeft(
+                      delay: const Duration(milliseconds: 150),
+                      child: countryDropdown(
+                        selectedCountry: selectedCountry,
+                        countryList:
+                            countryList
+                                .map(
+                                  (e) => e.map(
+                                    (key, value) =>
+                                        MapEntry(key, value.toString()),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            _onCountrySelected(val);
+                          }
+                          _checkFormValidity();
+                        },
+                      ),
                     ),
                     const SizedBox(height: 16),
 
                     if (!isInternational)
-                      bankDropdown(
-                        isLoadingBanks: isLoadingBanks,
-                        banks: banks,
-                        selectedBankCode: selectedBankCode,
-                        selectedBankName: selectedBankName,
-                        onChanged: (val) {
-                          setState(() {
-                            selectedBankCode = val;
-                            // Also update the selectedBankName if you pass it through
-                            final selectedBank = banks?.firstWhere(
-                              (b) => b['code'] == val,
-                              orElse: () => {'name': '', 'code': ''},
-                            );
-                            selectedBankName = selectedBank?['name'];
-                          });
-                          _checkFormValidity(); // call after state update
-                        },
+                      BounceInLeft(
+                        delay: const Duration(milliseconds: 200),
+                        child: bankDropdown(
+                          isLoadingBanks: isLoadingBanks,
+                          banks: banks,
+                          selectedBankCode: selectedBankCode,
+                          selectedBankName: selectedBankName,
+                          onChanged: (val) {
+                            setState(() {
+                              selectedBankCode = val;
+                              // Also update the selectedBankName if you pass it through
+                              final selectedBank = banks?.firstWhere(
+                                (b) => b['code'] == val,
+                                orElse: () => {'name': '', 'code': ''},
+                              );
+                              selectedBankName = selectedBank?['name'];
+                            });
+                            _checkFormValidity(); // call after state update
+                          },
+                        ),
                       ),
 
                     const SizedBox(height: 16),
 
-                    accountNumberField(
-                      isInternational: isInternational,
-                      accountNumber: accountNumber,
-                      beneficiaryName: beneficiaryName,
-                      isFetchingName: isFetchingName,
-                      onChanged: (val) {
-                        accountNumber = val;
-                        _checkFormValidity();
+                    BounceInLeft(
+                      delay: const Duration(milliseconds: 250),
+                      child: accountNumberField(
+                        isInternational: isInternational,
+                        accountNumber: accountNumber,
+                        beneficiaryName: beneficiaryName,
+                        isFetchingName: isFetchingName,
+                        onChanged: (val) {
+                          accountNumber = val;
+                          _checkFormValidity();
 
-                        // Only fetch for local banks and valid length
-                        if (!isInternational &&
-                            val.length >= 10 &&
-                            selectedBankCode != null) {
-                          _resolveAccountName(context);
-                        } else {
-                          // Reset name if invalid
-                          setState(() => beneficiaryName = null);
-                        }
-                      },
+                          // Only fetch for local banks and valid length
+                          if (!isInternational &&
+                              val.length >= 10 &&
+                              selectedBankCode != null) {
+                            _resolveAccountName(context);
+                          } else {
+                            // Reset name if invalid
+                            setState(() => beneficiaryName = null);
+                          }
+                        },
+                      ),
                     ),
 
                     // Extra fields if international
                     if (isInternational) ...[
-                      buildCustomTextField(
-                        label: "Beneficiary Name",
-                        onSaved: (val) => beneficiaryName = val,
+                      BounceInLeft(
+                        delay: const Duration(milliseconds: 300),
+                        child: buildCustomTextField(
+                          label: "Beneficiary Name",
+                          onSaved: (val) => beneficiaryName = val,
 
-                        onChanged: (val) {
-                          beneficiaryName = val;
-                          _checkFormValidity(); // still optional, won’t block button
-                        },
+                          onChanged: (val) {
+                            beneficiaryName = val;
+                            _checkFormValidity(); // still optional, won’t block button
+                          },
+                        ),
                       ),
-                      buildCustomTextField(
-                        label: "SWIFT Code",
-                        onSaved: (val) => swiftCode = val,
-                        onChanged: (val) {
-                          swiftCode = val;
-                          _checkFormValidity(); // still optional, won’t block button
-                        },
+                      BounceInLeft(
+                        delay: const Duration(milliseconds: 350),
+                        child: buildCustomTextField(
+                          label: "SWIFT Code",
+                          onSaved: (val) => swiftCode = val,
+                          onChanged: (val) {
+                            swiftCode = val;
+                            _checkFormValidity(); // still optional, won’t block button
+                          },
+                        ),
                       ),
-                      buildCustomTextField(
-                        label: "Beneficiary Address",
-                        onSaved: (val) => beneficiaryAddress = val,
-                        onChanged: (val) {
-                          beneficiaryAddress = val;
-                          _checkFormValidity(); // still optional, won’t block button
-                        },
+                      BounceInLeft(
+                        delay: const Duration(milliseconds: 400),
+                        child: buildCustomTextField(
+                          label: "Beneficiary Address",
+                          onSaved: (val) => beneficiaryAddress = val,
+                          onChanged: (val) {
+                            beneficiaryAddress = val;
+                            _checkFormValidity(); // still optional, won’t block button
+                          },
+                        ),
                       ),
-                      buildCustomTextField(
-                        label: "City",
-                        onSaved: (val) => beneficiaryCity = val,
-                        onChanged: (val) {
-                          beneficiaryCity = val;
-                          _checkFormValidity(); // still optional, won’t block button
-                        },
+                      BounceInLeft(
+                        delay: const Duration(milliseconds: 450),
+                        child: buildCustomTextField(
+                          label: "City",
+                          onSaved: (val) => beneficiaryCity = val,
+                          onChanged: (val) {
+                            beneficiaryCity = val;
+                            _checkFormValidity(); // still optional, won’t block button
+                          },
+                        ),
                       ),
                     ],
 
                     const SizedBox(height: 16),
-                    internationalTransferBanner(context),
+                    // International transfer banner
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 500),
+                      child: internationalTransferBanner(context),
+                    ),
                     const SizedBox(height: 16),
 
                     // Amount
-                    buildCustomTextField(
-                      label: "Amount",
-                      onSaved: (val) => amount = val,
-                      validator:
-                          (val) =>
-                              val == null || double.tryParse(val) == null
-                                  ? "Enter valid amount"
-                                  : null,
-                      onChanged: (val) {
-                        amount = val;
-                        _checkFormValidity(); // still optional, won’t block button
-                      },
+                    BounceInLeft(
+                      delay: const Duration(milliseconds: 550),
+                      child: buildCustomTextField(
+                        label: "Amount",
+                        onSaved: (val) => amount = val,
+                        validator:
+                            (val) =>
+                                val == null || double.tryParse(val) == null
+                                    ? "Enter valid amount"
+                                    : null,
+                        onChanged: (val) {
+                          amount = val;
+                          _checkFormValidity(); // still optional, won’t block button
+                        },
+                      ),
                     ),
 
                     // Description
-                    buildCustomTextField(
-                      label: "Description (Optional)",
-                      onSaved: (val) => description = val,
-                      // No validator since it's optional
-                      validator: (_) => null,
+                    BounceInLeft(
+                      delay: const Duration(milliseconds: 600),
+                      child: buildCustomTextField(
+                        label: "Description (Optional)",
+                        onSaved: (val) => description = val,
+                        // No validator since it's optional
+                        validator: (_) => null,
+                      ),
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed:
-                          isFormValid
-                              ? () {
-                                if (_formKey.currentState!.validate()) {
-                                  _formKey.currentState!.save();
-                                  _showConfirmationDialog();
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 650),
+                      child: ElevatedButton(
+                        onPressed:
+                            isFormValid
+                                ? () {
+                                  if (_formKey.currentState!.validate()) {
+                                    _formKey.currentState!.save();
+                                    _showConfirmationDialog();
+                                  }
                                 }
-                              }
-                              : null, // 👈 disabled when invalid
-                      child: const Text("Continue"),
+                                : null, // 👈 disabled when invalid
+                        child: const Text("Continue"),
+                      ),
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),

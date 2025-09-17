@@ -214,10 +214,20 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             Expanded(
               flex: 2,
-              child: headerSection(
-                context,
-                loggedInUser: _loggedInUser,
-                maskPhone: _maskPhone,
+              child: GestureDetector(
+                onTap: () {
+                  // Navigate to hidden admin login
+                  Navigator.pushNamed(context, '/admin-login');
+                },
+                // onLongPress: () {
+                //   // Navigate to hidden admin login
+                //   Navigator.pushNamed(context, '/admin-login');
+                // },
+                child: headerSection(
+                  context,
+                  loggedInUser: _loggedInUser,
+                  maskPhone: _maskPhone,
+                ),
               ),
             ),
             Expanded(

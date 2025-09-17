@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/custom-widgets/snackbar.dart';
 import 'package:transact_point/services/flutterwave-api-services.dart';
+import 'package:transact_point/services/user-api-services.dart';
 import './custom-widgets/electricity-widgets.dart'; // You can rename or create electricity-widgets.dart
 
 class ElectricityScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class ElectricityScreen extends StatefulWidget {
 
 class _ElectricityScreenState extends State<ElectricityScreen> {
   final ApiService _billService = ApiService();
+  final RegisterService _registerService = RegisterService();
   String? _selectedProvider; // E.g., IKEDC, EEDC, KEDCO
   bool _isLoading = true;
   final TextEditingController _meterController = TextEditingController();
@@ -24,10 +26,19 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
   @override
   void initState() {
     super.initState();
+    _registerService.loadUserData().then((_) {
+      setState(() {}); // refresh UI after load
+    });
     _loadElectricityPlans();
   }
 
   Future<void> _loadElectricityPlans() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showCustomSnackBar(
+        context,
+        "This is the user id: ${RegisterService.userId.toString()}",
+      );
+    });
     setState(() => _isLoading = true);
 
     try {
@@ -77,6 +88,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
 
     final result = await _billService.purchaseElectricity(
       context: context,
+      id: RegisterService.userId!,
       meterNumber: meterNumber,
       billerCode: _selectedBillerCode!,
       itemCode: _selectedItemCode!,
@@ -112,7 +124,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildPromoBanner(), // reuse if appropriate
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
                 meterNumberSection(
                   context,
                   controller: _meterController,
@@ -148,9 +160,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
                 buildElectricityUssdBanner(context),
-                const SizedBox(height: 24),
+                const SizedBox(height: 40),
                 buildPlanGrid(
                   plans: filteredPlans,
                   context: context,

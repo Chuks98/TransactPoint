@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -324,6 +325,83 @@ class UserController extends Controller
         }
     }
 
+
+    // Get 10 recent transactions for a user
+    public function getUserRecentTransactions($userId)
+    {
+        try {
+            \Log::info("📡 Fetching last 10 transactions for user: {$userId}");
+
+            $transactions = Transaction::where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->take(10) // only 10 most recent
+                ->get(['id', 'type', 'amount', 'description', 'status', 'currency', 'currencySign', 'created_at']); 
+
+            \Log::info("✅ Transactions fetched successfully", [
+                'user_id' => $userId,
+                'count'   => $transactions->count()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $transactions
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("🔥 Error fetching transactions for user {$userId}: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unable to fetch transactions.'
+            ], 500);
+        }
+    }
+
+
+
+    // Get transactions
+    public function getUserTransactions(Request $request, $userId)
+    {
+        try {
+            \Log::info("📡 Fetching transactions for user: {$userId}", [
+                'page' => $request->get('page', 1)
+            ]);
+
+            $transactions = Transaction::where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10, [
+                    'id',
+                    'type',
+                    'amount',
+                    'description',
+                    'status',
+                    'currency',
+                    'currencySign',
+                    'created_at'
+                ]);
+
+            \Log::info("✅ Transactions fetched", [
+                'user_id' => $userId,
+                'count'   => $transactions->count(),
+                'page'    => $transactions->currentPage()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $transactions
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("🔥 Error fetching transactions for user {$userId}: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unable to fetch transactions.'
+            ], 500);
+        }
+    }
 
 
 }

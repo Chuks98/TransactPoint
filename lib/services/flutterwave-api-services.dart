@@ -112,6 +112,7 @@ class ApiService {
   // Purchase Airtime
   Future<Map<String, dynamic>> purchaseAirtime({
     required context,
+    required String id,
     required String phone,
     required int amount,
     required String billerCode,
@@ -123,6 +124,7 @@ class ApiService {
         Uri.parse("$baseUrl/purchase-airtime"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
+          "id": id,
           "phone": phone,
           "amount": amount,
           "biller_code": billerCode,
@@ -144,7 +146,7 @@ class ApiService {
         print("Error: ${response.statusCode} - ${response.body}");
         return {};
       } else if (response.statusCode == 400) {
-        showCustomSnackBar(context, "Warning: ${decodedBody["message"]}");
+        showCustomSnackBar(context, "Error: ${decodedBody["message"]}");
         print("Error: ${response.statusCode} - ${response.body}");
         return {};
       } else {
@@ -161,6 +163,7 @@ class ApiService {
   // Purchase Data
   Future<Map<String, dynamic>> purchaseData({
     required context,
+    required String id,
     required String phone,
     required String billerCode,
     String? itemCode,
@@ -172,6 +175,7 @@ class ApiService {
         Uri.parse("$baseUrl/purchase-data"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
+          "id": id,
           "phone": phone,
           "biller_code": billerCode,
           "item_code": itemCode,
@@ -210,6 +214,7 @@ class ApiService {
   // Cable TC Subscription
   Future<Map<String, dynamic>> purchaseCable({
     required context,
+    required String id,
     required String smartCard,
     required String billerCode,
     String? itemCode,
@@ -221,6 +226,7 @@ class ApiService {
         Uri.parse("$baseUrl/purchase-cable"), // changed endpoint
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
+          "id": id,
           "smartcard": smartCard, // SmartCard number instead of phone
           "biller_code": billerCode,
           "item_code": itemCode,
@@ -259,6 +265,7 @@ class ApiService {
   // Purchase Electricity
   Future<Map<String, dynamic>> purchaseElectricity({
     required context,
+    required String id,
     required String meterNumber,
     required String billerCode,
     String? itemCode,
@@ -270,6 +277,7 @@ class ApiService {
         Uri.parse("$baseUrl/purchase-electricity"), // endpoint for electricity
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
+          "id": id,
           "meter_number": meterNumber, // meter number instead of smartcard
           "biller_code": billerCode,
           "item_code": itemCode,

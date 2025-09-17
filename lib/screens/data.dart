@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/custom-widgets/snackbar.dart';
 import 'package:transact_point/services/flutterwave-api-services.dart';
+import 'package:transact_point/services/user-api-services.dart';
 import './custom-widgets/data-widgets.dart';
 
 class DataScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class DataScreen extends StatefulWidget {
 
 class _DataScreenState extends State<DataScreen> {
   final ApiService _billService = ApiService();
+  final RegisterService _registerService = RegisterService();
   String? _selectedNetwork; // New variable to track selected network
   String _selectedCategory = "HOT";
   bool _isLoading = true;
@@ -51,10 +53,19 @@ class _DataScreenState extends State<DataScreen> {
   @override
   void initState() {
     super.initState();
+    _registerService.loadUserData().then((_) {
+      setState(() {}); // refresh UI after load
+    });
     _loadDataPlans();
   }
 
   Future<void> _loadDataPlans() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showCustomSnackBar(
+        context,
+        "This is the user id: ${RegisterService.userId.toString()}",
+      );
+    });
     setState(() => _isLoading = true);
 
     try {
@@ -126,6 +137,7 @@ class _DataScreenState extends State<DataScreen> {
 
     await _billService.purchaseData(
       context: context,
+      id: RegisterService.userId!,
       phone: phone,
       amount: _selectedAmount,
       billerCode: _selectedBillerCode!,

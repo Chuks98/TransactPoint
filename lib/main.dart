@@ -1,4 +1,11 @@
 import 'package:transact_point/main-layout.dart';
+import 'package:transact_point/screens/about.dart';
+import 'package:transact_point/screens/admin-dashboard.dart';
+import 'package:transact_point/screens/admin-login.dart';
+import 'package:transact_point/screens/admin-main-layout.dart';
+import 'package:transact_point/screens/admin-transactions.dart';
+import 'package:transact_point/screens/admin-users.dart';
+import 'package:transact_point/screens/admin-wallets.dart';
 import 'package:transact_point/screens/airtime.dart';
 import 'package:transact_point/screens/bills.dart';
 import 'package:transact_point/screens/cable.dart';
@@ -9,7 +16,8 @@ import 'package:transact_point/screens/fund-account.dart';
 import 'package:transact_point/screens/insurance.dart';
 import 'package:transact_point/screens/loan.dart';
 import 'package:transact_point/screens/login-normally.dart';
-import 'package:transact_point/screens/savings.dart';
+import 'package:transact_point/screens/privacy.dart';
+import 'package:transact_point/screens/transactions.dart';
 import 'package:transact_point/screens/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/shopping.dart';
@@ -128,9 +136,12 @@ class _TransactPointAppState extends State<TransactPointApp> {
             (context) =>
                 const MainLayout(title: "Travel", body: TravelScreen()),
 
-        '/savings':
-            (context) =>
-                const MainLayout(title: "Savings", body: SavingsScreen()),
+        '/transactions':
+            (context) => const MainLayout(
+              title: "Transactions",
+              body: TransactionsScreen(),
+              showBackButton: true,
+            ),
         '/wallet':
             (context) => const MainLayout(
               title: "My Account",
@@ -161,11 +172,54 @@ class _TransactPointAppState extends State<TransactPointApp> {
         '/register': (context) => RegisterScreen(),
         '/login': (context) => LoginScreen(),
         '/login-normally': (context) => LoginNormallyScreen(),
+        '/about':
+            (context) => MainLayout(
+              title: "About",
+              body: AboutScreen(),
+              showBackButton: true,
+            ),
         '/support':
             (context) => MainLayout(
               title: "Support",
               body: SupportScreen(),
               showBackButton: true,
+            ),
+        '/privacy':
+            (context) => MainLayout(
+              title: "Privacy Policy",
+              body: PrivacyPolicyScreen(),
+              showBackButton: true,
+            ),
+
+        // 🔹 Admin routes
+        '/admin-login': (context) => const AdminLoginScreen(),
+
+        '/admin-dashboard':
+            (context) => const AdminMainLayout(
+              title: "Admin Dashboard",
+              body: AdminDashboardScreen(),
+              initialIndex: 0,
+            ),
+
+        '/admin-users':
+            (context) => const AdminMainLayout(
+              title: "Manage Users",
+              body: AdminUsersScreen(),
+              initialIndex: 1,
+            ),
+
+        '/admin-wallets':
+            (context) => const AdminMainLayout(
+              title: "Manage Wallets",
+              body: AdminWalletsScreen(),
+              initialIndex: 2,
+            ),
+
+        '/admin-transactions':
+            (context) => const AdminMainLayout(
+              title: "Transactions",
+              body: AdminTransactionsScreen(),
+              initialIndex: 3,
             ),
       },
     );

@@ -30,7 +30,9 @@ class CustomSidebar extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.home, color: theme.colorScheme.primary),
             title: Text("Home", style: theme.textTheme.bodyMedium),
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/home');
+            },
           ),
           ListTile(
             leading: Icon(
@@ -38,7 +40,9 @@ class CustomSidebar extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
             title: Text("Profile", style: theme.textTheme.bodyMedium),
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
+            },
           ),
           ListTile(
             leading: Icon(Icons.wallet, color: theme.colorScheme.primary),
@@ -55,9 +59,18 @@ class CustomSidebar extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: Icon(Icons.privacy_tip, color: theme.colorScheme.primary),
+            title: Text("Privacy Policy", style: theme.textTheme.bodyMedium),
+            onTap: () {
+              Navigator.pushNamed(context, '/privacy');
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.settings, color: theme.colorScheme.primary),
             title: Text("Settings", style: theme.textTheme.bodyMedium),
-            onTap: () {},
+            onTap: () {
+              Navigator.pushNamed(context, '/settings');
+            },
           ),
 
           const Spacer(),

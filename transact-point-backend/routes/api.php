@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BillsController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminController; // Make sure you create this
 
+// Bills routes
 Route::get('/bill-categories', [BillsController::class, 'billCategories']);
 Route::get('/billers-by-category', [BillsController::class, 'billersByCategory']);
 Route::get('/mobile-networks', [BillsController::class, 'mobileNetworks']);
@@ -20,7 +22,7 @@ Route::post('/flutterwave-webhook', [BillsController::class, 'flutterwaveWebhook
 
 
 
-// User data and wallet routes
+// User routes
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
@@ -29,8 +31,32 @@ Route::prefix('user')->group(function () {
     Route::put('/update-single-user/{id}', [UserController::class, 'updateSingleUser']);
     Route::delete('/delete-single-user/{id}', [UserController::class, 'deleteSingleUser']);
 
-    // ✅ Wallet routes
+    // Wallet routes
     Route::get('/get-wallet/{userId}', [UserController::class, 'getWallet']);
     Route::post('/create-wallet', [UserController::class, 'createWallet']);
     Route::patch('/update-account', [UserController::class, 'updateAccount']);
+    Route::get('/recent-transactions/{userId}', [UserController::class, 'getUserRecentTransactions']);
+    Route::get('/transactions/{userId}', [UserController::class, 'getUserTransactions']);
+});
+
+
+
+
+// Admin routes
+Route::prefix('admin')->group(function () {
+    // Auth
+    Route::post('/login', [AdminController::class, 'login']);
+    Route::post('/logout', [AdminController::class, 'logout']);
+    Route::get('/me', [AdminController::class, 'me']);
+
+    // Users
+    Route::get('/users', [AdminController::class, 'getAllUsers']);
+
+    // Wallets
+    Route::get('/wallets', [AdminController::class, 'getAllWallets']);
+    Route::get('/wallet-by-user/{userId}', [AdminController::class, 'getWalletByUser']);
+
+    // Transactions
+    Route::get('/transactions', [AdminController::class, 'getAllTransactions']);
+    Route::get('/transactions/status/{status}', [AdminController::class, 'getTransactionsByStatus']);
 });

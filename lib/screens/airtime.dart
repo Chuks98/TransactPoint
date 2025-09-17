@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:transact_point/screens/custom-widgets/snackbar.dart';
 import '../../services/flutterwave-api-services.dart';
 import './custom-widgets/airtime-widgets.dart';
+import '../../services/user-api-services.dart';
 
 class AirtimeScreen extends StatefulWidget {
   const AirtimeScreen({super.key});
@@ -12,19 +13,44 @@ class AirtimeScreen extends StatefulWidget {
 
 class _AirtimeScreenState extends State<AirtimeScreen> {
   final ApiService _billService = ApiService();
+  final RegisterService _registerService = RegisterService();
 
   Map<String, List<dynamic>> _airtimeBillers = {};
-  bool isLoading = true;
   String? _selectedBillerCode; // <-- track selected biller
   String? _selectedItemCode;
+
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final ApiService _apiService = ApiService();
+
+  int? _selectedTopUpAmount;
+  bool _isLoading = false;
+
+  final List<Map<String, dynamic>> topUpOptions = [
+    {'amount': 50, 'cashback': 0.5},
+    {'amount': 100, 'cashback': 1},
+    {'amount': 200, 'cashback': 2},
+    {'amount': 500, 'cashback': 5},
+    {'amount': 1000, 'cashback': 10},
+    {'amount': 2000, 'cashback': 20},
+  ];
 
   @override
   void initState() {
     super.initState();
+    _registerService.loadUserData().then((_) {
+      setState(() {}); // refresh UI after load
+    });
     _loadAirtimeBills();
   }
 
   Future<void> _loadAirtimeBills() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showCustomSnackBar(
+        context,
+        "This is the user id: ${RegisterService.userId.toString()}",
+      );
+    });
     try {
       final _airtimeBills = await _billService.fetchBillersByCategory(
         'airtime',
@@ -60,22 +86,6 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
     }
   }
 
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final ApiService _apiService = ApiService();
-
-  int? _selectedTopUpAmount;
-  bool _isLoading = false;
-
-  final List<Map<String, dynamic>> topUpOptions = [
-    {'amount': 50, 'cashback': 0.5},
-    {'amount': 100, 'cashback': 1},
-    {'amount': 200, 'cashback': 2},
-    {'amount': 500, 'cashback': 5},
-    {'amount': 1000, 'cashback': 10},
-    {'amount': 2000, 'cashback': 20},
-  ];
-
   void _onTopUpSelected(int amount) {
     setState(() {
       _selectedTopUpAmount = amount;
@@ -101,6 +111,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
 
     await _apiService.purchaseAirtime(
       context: context,
+      id: RegisterService.userId!,
       phone: phone,
       amount: amount,
       billerCode: _selectedBillerCode!,

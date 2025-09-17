@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transact_point/screens/custom-widgets/snackbar.dart';
 import '../services/user-api-services.dart'; // 👈 make sure this path is correct
 
 class LoginNormallyScreen extends StatefulWidget {
@@ -29,9 +30,7 @@ class _LoginNormallyScreenState extends State<LoginNormallyScreen> {
         // Navigate to home/dashboard after success
         Navigator.pushReplacementNamed(context, '/home');
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+        showCustomSnackBar(context, "Login failed: $e");
       } finally {
         setState(() => _isLoading = false);
       }

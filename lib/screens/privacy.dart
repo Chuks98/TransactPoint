@@ -3,8 +3,8 @@ import 'package:animate_do/animate_do.dart';
 import 'package:transact_point/screens/custom-widgets/support-and-privacy-widgets.dart';
 import '../theme.dart';
 
-class SupportScreen extends StatelessWidget {
-  const SupportScreen({super.key});
+class PrivacyPolicyScreen extends StatelessWidget {
+  const PrivacyPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class SupportScreen extends StatelessWidget {
           children: [
             FadeInDown(
               child: Text(
-                "Welcome to Transact Point",
+                "Your Privacy Matters",
                 style: textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
@@ -29,8 +29,8 @@ class SupportScreen extends StatelessWidget {
             FadeIn(
               delay: const Duration(milliseconds: 300),
               child: Text(
-                "Transact Point makes it simple to send and receive money across the globe, "
-                "with support for international bank transfers and multiple currencies.",
+                "This Privacy Policy explains how Transact Point collects, uses, "
+                "and protects your personal information.",
                 style: textTheme.bodyMedium,
               ),
             ),
@@ -38,22 +38,19 @@ class SupportScreen extends StatelessWidget {
 
             FadeInUp(
               delay: const Duration(milliseconds: 500),
-              child: buildSupportBanner(context),
+              child: buildPrivacyPolicyBanner(context),
             ),
 
             const SizedBox(height: 24),
-
-            // Section 1
             SlideInRight(
               delay: const Duration(milliseconds: 600),
               child: _buildSection(
                 context,
-                title: "🌍 What You Can Do",
+                title: "1️⃣ Information We Collect",
                 points: [
-                  "Send money internationally with just a few details.",
-                  "Receive payments directly into your local or international bank account.",
-                  "Support for multiple currencies including USD, EUR, GBP, NGN, KRW and more.",
-                  "Track your transfers in real time.",
+                  "Personal information you provide when using the app.",
+                  "Transaction history and payment details.",
+                  "Device and usage data for improving our services.",
                 ],
               ),
             ),
@@ -62,19 +59,16 @@ class SupportScreen extends StatelessWidget {
             Divider(color: Colors.grey.shade300, thickness: 1),
             const SizedBox(height: 24),
 
-            // Section 2
             SlideInLeft(
               delay: const Duration(milliseconds: 800),
               child: _buildSection(
                 context,
-                title: "🏦 Bank Details You’ll Need",
+                title: "2️⃣ How We Use Your Information",
                 points: [
-                  "Account Holder’s Name (must match the bank account).",
-                  "Bank Name & Branch.",
-                  "Account Number or IBAN (depending on the country).",
-                  "SWIFT/BIC code (for international transfers).",
-                  "Routing Number (for US banks only).",
-                  "Bank Address (sometimes required by certain banks).",
+                  "To process transactions and payments.",
+                  "To communicate important updates and offers.",
+                  "To improve app functionality and user experience.",
+                  "To comply with legal and regulatory obligations.",
                 ],
               ),
             ),
@@ -83,18 +77,15 @@ class SupportScreen extends StatelessWidget {
             Divider(color: Colors.grey.shade300, thickness: 1),
             const SizedBox(height: 24),
 
-            // Section 3
             SlideInRight(
               delay: const Duration(milliseconds: 1000),
               child: _buildSection(
                 context,
-                title: "💡 Tips for a Smooth Transfer",
+                title: "3️⃣ Data Protection",
                 points: [
-                  "Always double-check account numbers and SWIFT codes before sending.",
-                  "If your recipient does not have a USD account, their bank will convert "
-                      "the funds into the local currency automatically.",
-                  "Some banks (especially outside Africa) require full branch addresses.",
-                  "Transfers may take 1–3 business days depending on the destination country.",
+                  "We implement security measures to protect your data.",
+                  "We do not sell your personal information to third parties.",
+                  "Access to your data is limited to authorized personnel.",
                 ],
               ),
             ),
@@ -103,34 +94,15 @@ class SupportScreen extends StatelessWidget {
             Divider(color: Colors.grey.shade300, thickness: 1),
             const SizedBox(height: 24),
 
-            // Section 4
             SlideInLeft(
               delay: const Duration(milliseconds: 1200),
               child: _buildSection(
                 context,
-                title: "📱 Bill Payments (Nigeria Only)",
+                title: "4️⃣ Your Rights",
                 points: [
-                  "Buy Airtime for all major networks instantly.",
-                  "Top up Data bundles with just a few taps.",
-                  "Pay Cable TV subscriptions (DSTV, GOTV, Startimes, etc.).",
-                  "Settle Electricity bills conveniently from your wallet.",
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-            Divider(color: Colors.grey.shade300, thickness: 1),
-            const SizedBox(height: 24),
-
-            // Section 5
-            SlideInRight(
-              delay: const Duration(milliseconds: 1400),
-              child: _buildSection(
-                context,
-                title: "📞 Need Help?",
-                points: [
-                  "Check the FAQ section inside the app.",
-                  "Contact our support team directly through the in-app chat or email.",
+                  "You can request access to your personal data.",
+                  "You can request corrections or deletions of your data.",
+                  "You can opt-out of marketing communications at any time.",
                 ],
               ),
             ),
@@ -140,7 +112,7 @@ class SupportScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             FadeInUp(
-              delay: const Duration(milliseconds: 1600),
+              delay: const Duration(milliseconds: 1400),
               child: Text(
                 "📧 Contact Us",
                 style: textTheme.titleMedium?.copyWith(
@@ -152,7 +124,7 @@ class SupportScreen extends StatelessWidget {
             const SizedBox(height: 8),
 
             BounceInUp(
-              delay: const Duration(milliseconds: 1800),
+              delay: const Duration(milliseconds: 1600),
               child: Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: Padding(
@@ -166,7 +138,7 @@ class SupportScreen extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              "support@transactpoint.com",
+                              "privacy@transactpoint.com",
                               style: textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                               ),

@@ -182,10 +182,7 @@ Widget buildPlanGrid({
                     plan['biller_name']?.toString() ??
                         plan['name']?.toString() ??
                         '',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
@@ -194,10 +191,7 @@ Widget buildPlanGrid({
                 const SizedBox(height: 4),
                 Text(
                   "₦${plan['amount']?.toString() ?? ''}",
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w500),
                 ),
               ],
             ),

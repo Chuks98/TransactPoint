@@ -148,14 +148,14 @@ Widget buildPlanGrid({
 }) {
   return ConstrainedBox(
     constraints: BoxConstraints(
-      maxHeight: plans.length * 80.0, // Approximate height per grid item
+      maxHeight: plans.length * 150.0, // increase per-item height
     ),
     child: GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 2.5,
+        childAspectRatio: 2.0, // lower ratio = taller item
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -185,27 +185,21 @@ Widget buildPlanGrid({
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Flexible(
+                Expanded(
                   child: Text(
                     plan['biller_name']?.toString() ??
                         plan['name']?.toString() ??
                         '',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
+                    maxLines: 5,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   "₦${plan['amount']?.toString() ?? ''}",
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w500),
                 ),
               ],
             ),

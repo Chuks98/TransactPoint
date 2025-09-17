@@ -19,18 +19,25 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
   bool _loading = false;
   String? _rate;
   String? _targetCurrency;
-  String? currentCurrency; // passed from WalletScreen
-  double? walletBalance; // passed from WalletScreen
-  double? convertedBalance; // new balance after conversion
+  String? currentCurrency;
+  String? walletBalance;
+  String? currencySign;
+  String? convertedBalance;
 
-  /// 🔹 Fetch conversion rate and calculate new balance
+  /// 🔹 Fetch conversion rate
   Future<void> _getRate() async {
+    print("Current Currency: $currentCurrency");
+    print("Selected Country: $selectedCountry");
     if (currentCurrency == null || selectedCountry == null) {
       showCustomSnackBar(context, "Please select a currency first");
       return;
     }
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _rate = null; // reset old values
+      convertedBalance = null;
+    });
 
     _targetCurrency = selectedCountry!['currency'];
 
@@ -45,15 +52,14 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
     if (data != null && data["success"] == true) {
       setState(() {
         _rate = data["rate"].toString();
-        convertedBalance =
-            walletBalance! * double.parse(_rate!); // 🔹 calculate new balance
+        convertedBalance = data["converted_amount"].toString();
       });
     }
 
     setState(() => _loading = false);
   }
 
-  /// 🔹 Call service to update account
+  /// 🔹 Update account
   Future<void> _updateAccount() async {
     if (selectedCountry == null) {
       showCustomSnackBar(context, "Please select a country/currency");
@@ -84,13 +90,12 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
         currency: selectedCountry!['currency'],
         currencySign: selectedCountry!['currency_sign'],
         code: selectedCountry!['code'],
-        amount: convertedBalance!.toStringAsFixed(2), // ✅ send new balance
+        amount: convertedBalance!,
       );
 
       if (response['status'] == 'success') {
         showCustomSnackBar(context, "Account updated successfully!");
 
-        // ✅ Return updated values to WalletScreen
         Navigator.pop(context, {
           'currency': selectedCountry!['currency'],
           'currencySign': selectedCountry!['currency_sign'],
@@ -113,8 +118,9 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
   Widget build(BuildContext context) {
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-    currentCurrency = args?['currency']; // from WalletScreen
-    walletBalance = (args?['balance'] ?? 0).toDouble();
+    currentCurrency = args?['currentCurrency'];
+    walletBalance = (args?['balance'] ?? '0');
+    currencySign = args?['currencySign'];
 
     return Scaffold(
       body: Padding(
@@ -129,6 +135,11 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
             const SizedBox(height: 20),
 
             buildWalletTopUpBanner(context),
+            const SizedBox(height: 20),
+            Text(
+              "Account Balance: $currencySign $walletBalance",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
 
             DropdownButton<Map<String, dynamic>>(
@@ -146,20 +157,40 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
                   }).toList(),
               onChanged: (value) {
                 setState(() => selectedCountry = value);
-                _getRate(); // 🔹 trigger rate fetch immediately
+                _getRate();
               },
             ),
 
             const SizedBox(height: 20),
 
-            if (_rate != null && convertedBalance != null)
+            /// 🔹 Show progress bar + loader while fetching
+            if (_loading) ...[
+              LinearProgressIndicator(),
+              const SizedBox(height: 12),
+              Row(
+                children: const [
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 12),
+                  Text("Fetching conversion rate..."),
+                ],
+              ),
+            ],
+
+            /// 🔹 Show results when done loading
+            if (!_loading && _rate != null && convertedBalance != null) ...[
               Text(
-                "Conversion Rate: $_rate\nNew Balance: $convertedBalance",
+                "Rate: 1 $currentCurrency = $_rate $_targetCurrency\n"
+                "Converted Balance: $convertedBalance $_targetCurrency",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
+            ],
 
             const SizedBox(height: 20),
 
@@ -167,7 +198,11 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
               onPressed: _loading ? null : _updateAccount,
               child:
                   _loading
-                      ? const CircularProgressIndicator()
+                      ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                       : const Text("Update Account"),
             ),
           ],
