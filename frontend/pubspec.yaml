@@ -1,0 +1,80 @@
+name: transact_point
+description: "Transact Point App."
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+
+version: 1.0.0+1
+
+
+environment:
+  sdk: ^3.7.0
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.5.0
+  flutter_dotenv: ^6.0.0
+  cupertino_icons: ^1.0.8
+  provider: ^6.0.5
+  shared_preferences: ^2.1.1
+  carousel_slider: ^5.1.1
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^9.2.4
+  dropdown_search: ^5.0.3
+  url_launcher: ^6.3.2
+  intl: ^0.20.2
+  animate_do: ^4.2.0
+  google_fonts: ^6.3.1
+  network_info_plus: 6.1.0
+  permission_handler: ^12.0.1
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.1
+
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/images/logo.jpeg
+    - assets/images/promo.png
+    - assets/images/mtn-logo.png
+    - assets/images/9mobile-logo.jpeg
+    - assets/images/airtel-logo.png
+    - assets/images/glo-logo.jpeg
+    - assets/images/dstv-logo.jpeg
+    - assets/images/gotv-logo.png
+    - assets/images/startimes-logo.jpeg
+    - assets/images/ikedc-logo.png
+    - assets/images/ekedc-logo.png
+    - assets/images/kedco-logo.png
+    - assets/images/phedc-logo.jpeg
+    - assets/images/eedc-logo.jpeg
+    - assets/images/ibedc-logo.jpeg
+    - assets/images/kandco-logo.jpeg
+
+
+# Flutter Launcher Icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.jpeg"
+  # adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/images/logo.jpeg"
+
+
+# Flutter Native Splash
+flutter_native_splash:
+  color: "#FFFFFF"  # 👈 your background color
+  image: assets/images/logo.png
+  android: true
+  ios: true
+  web: false

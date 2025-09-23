@@ -1,0 +1,24 @@
+# Node.js dependencies (frontend)
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# PHP/Laravel dependencies (backend)
+backend/vendor/
+backend/node_modules/
+backend/public/storage
+
+# Environment files (never push secrets)
+*.env
+.env.*
+
+# Logs & caches
+*.log
+storage/
+bootstrap/cache/
+
+# OS & editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
