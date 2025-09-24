@@ -80,7 +80,16 @@ class _AdminWalletsScreenState extends State<AdminWalletsScreen> {
           child: Container(
             height: 140,
             width: double.infinity,
-            color: AppColors.primary,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary,
+                  AppColors.primary.withOpacity(0.12),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             alignment: Alignment.center,
             child: FadeInDown(
               child: Text(

@@ -53,11 +53,7 @@ class CustomCarousel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(
-                IconData(int.parse(icon), fontFamily: 'MaterialIcons'),
-                size: 40,
-                color: Colors.white, // 👈 make icon visible on gradient
-              ),
+              Icon(icon as IconData?, size: 40, color: Colors.white),
               const SizedBox(width: 16),
             ],
             Expanded(

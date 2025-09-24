@@ -1,0 +1,26 @@
+# IDE and system log
+.DS_Store
+/.idea
+/.vscode
+/.phpactor.json
+/.zed
+Thumbs.db
+
+# Laravel / PHP caches
+.phpunit.result.cache
+/.phpunit.cache
+
+# Node / frontend build files
+/node_modules
+/public/build
+/public/hot
+
+# Composer / vendor
+/vendor
+/auth.json
+
+# Homestead
+Homestead.json
+Homestead.yaml
+/.fleet
+/.nova
