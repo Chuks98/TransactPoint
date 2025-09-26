@@ -1,0 +1,79 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace "com.example.transact_point"
+    compileSdk 35
+    ndkVersion "27.0.12077973"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
+    defaultConfig {
+        applicationId "com.example.transact_point"
+        minSdk 21
+        targetSdk 35
+        versionCode flutter.versionCode
+        versionName flutter.versionName
+        multiDexEnabled true
+    }
+
+    signingConfigs {
+        release {
+            keyAlias "transact_point_key"
+            keyPassword "Skubunch65@&"
+            storeFile file("transact_point.keystore")
+            storePassword "Skubunch65@&"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+
+            // ✅ Split only for release builds
+            splits {
+                abi {
+                    enable true
+                    reset()
+                    include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                    universalApk false
+                }
+            }
+        }
+
+        debug {
+            signingConfig signingConfigs.debug
+
+            // ✅ Ensure debug produces one universal APK
+            splits {
+                abi {
+                    enable false
+                }
+            }
+        }
+    }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                "META-INF/DEPENDENCIES",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE.txt"
+            ]
+        }
+    }
+}
