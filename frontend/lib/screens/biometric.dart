@@ -187,7 +187,7 @@ class _BiometricScreenState extends State<BiometricScreen>
                       scale: _pulseAnimation.value,
                       child: Container(
                         width: 100,
-                        height: 100,
+                        height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
@@ -260,17 +260,17 @@ class _BiometricScreenState extends State<BiometricScreen>
           children: [
             // 🔹 Header Section
             Expanded(
-              flex: 2,
+              flex: 1,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.security,
-                      size: 70,
+                      size: 50,
                       color: AppColors.primary,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 15),
                     Text(
                       "Hi ${widget.user.firstName},",
                       style: theme.textTheme.titleLarge!.copyWith(

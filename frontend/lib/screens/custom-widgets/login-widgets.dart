@@ -3,6 +3,55 @@ import 'package:flutter/material.dart';
 typedef PinCallback = void Function(String number);
 typedef VoidCallbackAsync = Future<void> Function();
 
+/// Profile avatar circle
+Widget profileAvatar(BuildContext context) {
+  final theme = Theme.of(context);
+  return Container(
+    width: 50,
+    height: 50,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: theme.cardTheme.color,
+    ),
+    child: Icon(Icons.person, size: 40, color: theme.colorScheme.secondary),
+  );
+}
+
+/// Header section with app title and user info
+Widget headerSection(
+  BuildContext context, {
+  Map<String, dynamic>? loggedInUser,
+  required String Function(String) maskPhone,
+}) {
+  final theme = Theme.of(context);
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      SizedBox(height: 20),
+      Text(
+        'Transact Point',
+        style: theme.textTheme.titleLarge!.copyWith(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+      const SizedBox(height: 20),
+      profileAvatar(context),
+      const SizedBox(height: 20),
+      Text(
+        loggedInUser != null
+            ? "${(loggedInUser['firstName'] ?? '').toString().toUpperCase()} "
+                "(${maskPhone(loggedInUser['phoneNumber'] ?? '')})"
+            : "Welcome",
+        style: theme.textTheme.titleMedium!.copyWith(
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+    ],
+  );
+}
+
 /// Keypad button widget
 Widget keypadButton(
   BuildContext context,
@@ -21,7 +70,7 @@ Widget keypadButton(
       }
     },
     child: Container(
-      height: 70,
+      height: 30,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(14),
@@ -135,17 +184,19 @@ Widget pinSection(
         ),
         const SizedBox(height: 20),
         pinIndicators(context, pin),
-        // const SizedBox(height: 20),
-        // GestureDetector(
-        //   onTap: () {},
-        //   child: Text(
-        //     'Forgot Password?',
-        //     style: theme.textTheme.bodyMedium!.copyWith(
-        //       color: theme.colorScheme.primary,
-        //     ),
-        //   ),
-        // ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(context, '/forgot-password');
+          },
+          child: Text(
+            'Forgot Password?',
+            style: theme.textTheme.bodyMedium!.copyWith(
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 40),
           width: double.infinity,
@@ -171,7 +222,7 @@ Widget pinSection(
                     ),
           ),
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: GridView.builder(
@@ -179,9 +230,9 @@ Widget pinSection(
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
-              childAspectRatio: 1.2,
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 15,
+              childAspectRatio: 1.7,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
             ),
             itemCount: 12,
             itemBuilder: (context, index) {
@@ -289,54 +340,6 @@ Widget biometricSection(
   );
 }
 
-/// Header section with app title and user info
-Widget headerSection(
-  BuildContext context, {
-  Map<String, dynamic>? loggedInUser,
-  required String Function(String) maskPhone,
-}) {
-  final theme = Theme.of(context);
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Text(
-        'Transact Point',
-        style: theme.textTheme.titleLarge!.copyWith(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: theme.colorScheme.onBackground,
-        ),
-      ),
-      const SizedBox(height: 40),
-      profileAvatar(context),
-      const SizedBox(height: 20),
-      Text(
-        loggedInUser != null
-            ? "${(loggedInUser['firstName'] ?? '').toString().toUpperCase()} "
-                "(${maskPhone(loggedInUser['phoneNumber'] ?? '')})"
-            : "Welcome Guest",
-        style: theme.textTheme.titleMedium!.copyWith(
-          color: theme.colorScheme.onBackground,
-        ),
-      ),
-    ],
-  );
-}
-
-/// Profile avatar circle
-Widget profileAvatar(BuildContext context) {
-  final theme = Theme.of(context);
-  return Container(
-    width: 80,
-    height: 80,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: theme.cardTheme.color,
-    ),
-    child: Icon(Icons.person, size: 40, color: theme.colorScheme.secondary),
-  );
-}
-
 /// Switch login mode (fingerprint ↔ pin)
 Widget switchLoginModeText(
   BuildContext context, {
@@ -366,7 +369,7 @@ Widget switchLoginModeText(
               Navigator.pushNamed(context, '/login-normally');
             },
             child: Text(
-              "Login Normally",
+              "Trouble logging in? Use phone number + PIN",
               style: theme.textTheme.bodyMedium!.copyWith(
                 color: theme.colorScheme.primary,
               ),

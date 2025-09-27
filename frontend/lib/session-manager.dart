@@ -24,7 +24,7 @@ class SessionManager with WidgetsBindingObserver {
   void _resetTimer() {
     _timer?.cancel();
     _timer = Timer(
-      const Duration(minutes: 2),
+      const Duration(minutes: 7),
       _logoutUser,
     ); // 2 minutes timeout
   }
@@ -43,7 +43,7 @@ class SessionManager with WidgetsBindingObserver {
         state == AppLifecycleState.inactive) {
       // App went to background/sleep
       _timer?.cancel();
-      _timer = Timer(const Duration(minutes: 2), _logoutUser);
+      _timer = Timer(const Duration(minutes: 7), _logoutUser);
     } else if (state == AppLifecycleState.resumed) {
       // Restart timer when app comes back
       _resetTimer();

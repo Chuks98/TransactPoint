@@ -24,4 +24,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class);
     }
+
+    // public function virtualAccount()
+    // {
+    //     return $this->hasOne(VirtualAccount::class, 'user_id', 'id');
+    // }
 }

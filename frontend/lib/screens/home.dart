@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
       String? userJson = await storage.read(key: "logged_in_user");
       if (userJson == null) return;
 
-      final userMap = jsonDecode(userJson);
+      final userMap = jsonDecode(userJson) as Map<String, dynamic>? ?? {};
       final firstName = userMap['firstName'] ?? "";
       final lastName = userMap['lastName'] ?? "";
       userId = userMap['id']?.toString();
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return Icons.swap_horiz;
       case "my account":
         return Icons.account_balance_wallet;
-      case "bank-details":
+      case "my bank details":
         return Icons.money;
       case "more":
         return Icons.more_horiz;
@@ -107,8 +107,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _formatBalance(String balance) {
+    try {
+      final value = double.tryParse(balance) ?? 0.0;
+      return currencyFormatter.format(value);
+    } catch (e) {
+      print("Balance formatting failed: $e");
+      return balance;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ThemeData apptheme = Theme.of(context);
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
@@ -127,19 +138,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: CustomCarousel(
                   items: const [
                     {
-                      "icon": "0xe0af",
                       "title": "Pay Bills Easily",
                       "subtitle": "Electricity, Cable, Internet & more",
+                      "icon": Icons.receipt_long, // ✅ use constant
                     },
                     {
-                      "icon": "0xe041",
                       "title": "Invest Smartly",
                       "subtitle": "Grow your money with us",
+                      "icon": Icons.trending_up,
                     },
                     {
-                      "icon": "0xe1bc",
                       "title": "Quick Airtime & Data",
                       "subtitle": "Recharge instantly anytime",
+                      "icon": Icons.phone_android,
                     },
                   ],
                 ),
@@ -160,10 +171,13 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 children: [
                   Text(
+                    // _isBalanceVisible
+                    //     ? "${currencySign ?? ""} ${currencyFormatter.format(double.tryParse(userBalance) ?? 0)}"
+                    //         .trim()
+                    //     : "${currencySign ?? ""}${"******"}".trim(),
                     _isBalanceVisible
-                        ? "${currencySign ?? ""} ${currencyFormatter.format(double.tryParse(userBalance) ?? 0)}"
-                            .trim()
-                        : "${currencySign ?? ""}${"******"}".trim(),
+                        ? "${currencySign ?? ""} ${_formatBalance(userBalance)}"
+                        : "${currencySign ?? ""}******",
 
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -192,70 +206,136 @@ class _HomeScreenState extends State<HomeScreen> {
 
               /// 🔹 Categories
               !_loading && _categories.isNotEmpty
-                  ? Column(
-                    children: [
-                      for (int i = 0; i < _categories.keys.length; i += 3)
-                        _buildServiceGrid(
-                          _categories.keys.skip(i).take(3).map((categoryName) {
-                            return SizedBox(
-                              height: 110, // 🔹 fixed height for all boxes
-                              child: Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: InkWell(
-                                  onTap: () {
-                                    final routeName =
-                                        categoryName.toLowerCase();
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/$routeName',
-                                    ).then((_) {
-                                      _loadUserData();
-                                    });
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(14),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary
-                                                .withOpacity(0.1),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
-                                            _getIconForCategory(categoryName),
-                                            color: AppColors.primary,
-                                            size: 22,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          categoryName.toUpperCase(),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 1, // 🔹 single line only
-                                          overflow:
-                                              TextOverflow
-                                                  .ellipsis, // 🔹 cut off if too long
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                  ? Builder(
+                    builder: (context) {
+                      final keysList = _categories.keys.toList();
+
+                      return Column(
+                        children: [
+                          for (
+                            int batchStart = 0;
+                            batchStart < keysList.length;
+                            batchStart += 6
+                          )
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: apptheme.colorScheme.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
                                   ),
-                                ),
+                                ],
                               ),
-                            );
-                          }).toList(),
-                        ),
-                    ],
+                              child: Column(
+                                children: [
+                                  for (
+                                    int rowStart = batchStart;
+                                    rowStart < batchStart + 6 &&
+                                        rowStart < keysList.length;
+                                    rowStart += 3
+                                  ) ...[
+                                    _buildServiceGrid(
+                                      keysList
+                                          .skip(rowStart)
+                                          .take(3)
+                                          .map(
+                                            (categoryName) => SizedBox(
+                                              height: 95,
+                                              child: Card(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      '/${categoryName.toLowerCase()}',
+                                                    ).then(
+                                                      (_) => _loadUserData(),
+                                                    );
+                                                  },
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(6),
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                8,
+                                                              ),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                color: AppColors
+                                                                    .primary
+                                                                    .withOpacity(
+                                                                      0.1,
+                                                                    ),
+                                                                shape:
+                                                                    BoxShape
+                                                                        .circle,
+                                                              ),
+                                                          child: Icon(
+                                                            _getIconForCategory(
+                                                              categoryName,
+                                                            ),
+                                                            color:
+                                                                AppColors
+                                                                    .primary,
+                                                            size: 18,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 8,
+                                                        ),
+                                                        Text(
+                                                          categoryName
+                                                              .toUpperCase(),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          maxLines: 1,
+                                                          overflow:
+                                                              TextOverflow
+                                                                  .ellipsis,
+                                                          style: Theme.of(
+                                                                context,
+                                                              )
+                                                              .textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                    if (rowStart + 3 < batchStart + 6 &&
+                                        rowStart + 3 < keysList.length)
+                                      const SizedBox(height: 8),
+                                  ],
+                                ],
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   )
                   : const Center(child: CircularProgressIndicator()),
             ],

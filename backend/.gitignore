@@ -9,6 +9,7 @@ Thumbs.db
 # Laravel / PHP caches
 .phpunit.result.cache
 /.phpunit.cache
+# .env
 
 # Node / frontend build files
 /node_modules

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ForgotPasswordMail;
+use Illuminate\Support\Facades\Mail;
 use App\Services\FlutterwaveService;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -138,17 +140,17 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
-            // Validate incoming request
+            // 1️⃣ Validate incoming request
             $request->validate([
                 'phoneNumber' => 'required|string|max:20',
                 'password'    => 'required|string|min:4|max:6', // PIN length
             ]);
 
-            // Find user
+            // 2️⃣ Fetch user by phone number
             $user = User::where('phoneNumber', $request->phoneNumber)->first();
 
             if (!$user) {
-                \Log::warning('Login attempt failed: user not found', [
+                \Log::warning('Login failed: user not found', [
                     'phoneNumber' => $request->phoneNumber,
                 ]);
 
@@ -158,9 +160,9 @@ class UserController extends Controller
                 ], 404);
             }
 
-            // Verify password
-            if (!$user->password || !Hash::check($request->password, $user->password)) {
-                \Log::warning('Login attempt failed: incorrect PIN', [
+            // 3️⃣ Verify password
+            if (!$user->password || !\Hash::check($request->password, $user->password)) {
+                \Log::warning('Login failed: incorrect PIN', [
                     'phoneNumber'   => $request->phoneNumber,
                     'attempted_pin' => $request->password,
                 ]);
@@ -171,32 +173,27 @@ class UserController extends Controller
                 ], 401);
             }
 
-            // ✅ Fetch Virtual Account
-            $virtualAccount = $user->virtualAccount; // assuming hasOne in User model
-
-            // Merge user + virtual account fields
-            $userData = $user->toArray();
-            if ($virtualAccount) {
-                $userData['account_number'] = $virtualAccount->account_number;
-                $userData['bank_name']      = $virtualAccount->bank_name;
-                $userData['country']        = $virtualAccount->country;
-                $userData['currency_sign']  = $virtualAccount->currency_sign;
-            }
+            // 4️⃣ Fetch virtual account using user's id
+            $va = VirtualAccount::where('user_id', $user->id)->first();
 
             \Log::info('User logged in successfully', [
-                'user_id'     => $user->id,
+                'user_id' => $user->id,
                 'phoneNumber' => $user->phoneNumber,
+                'virtual_account_exists' => $va ? true : false,
             ]);
 
+            // 5️⃣ Return user and virtual account separately
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful.',
-                'data'    => $userData,
+                'user' => $user,
+                'virtualAccount' => $va, // can be null if not exists
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::warning('Validation failed during login', [
                 'errors' => $e->errors(),
+                'input'  => $request->all(),
             ]);
 
             return response()->json([
@@ -208,6 +205,8 @@ class UserController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error during login', [
                 'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'input'   => $request->all(),
             ]);
 
             return response()->json([
@@ -216,6 +215,8 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+
 
 
 
@@ -472,4 +473,70 @@ class UserController extends Controller
     }
 
 
+
+
+
+    // Forgot password api
+    public function forgotPassword(Request $request)
+    {
+        try {
+
+            $request->validate([
+                'email' => 'required|email'
+            ]);
+
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                Log::warning('Forgot password failed: User not found.', ['email' => $request->email]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No account found with this email.',
+                ], 404);
+            }
+
+            // 🔑 Generate a new 6-digit numeric password
+            $newPassword = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            Log::info('Generated new password.', ['email' => $user->email, 'newPassword' => $newPassword]);
+
+            // 🔒 Hash it and update user
+            $user->password = Hash::make($newPassword);
+            $user->save();
+            Log::info('Password updated in database.', ['user_id' => $user->id]);
+
+            // 📧 Send email with new password
+            Mail::to($user->email)->send(new ForgotPasswordMail($user, $newPassword));
+            Log::info('Forgot password email sent.', ['email' => $user->email]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'A new password has been sent to your email.',
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error in forgotPassword.', [
+                'email' => $request->email,
+                'errors' => $e->errors()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors'  => $e->errors(),
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Exception in forgotPassword.', [
+                'email' => $request->email ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong. Please try again later.',
+            ], 500);
+        }
+    }
 }

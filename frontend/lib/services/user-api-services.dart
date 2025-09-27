@@ -173,12 +173,25 @@ class RegisterService {
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 && responseData['success'] == true) {
+        final userData = responseData['user'] ?? {};
+        final vaData = responseData['virtualAccount'] ?? {};
+
+        // Merge into one JSON
+        final enrichedUser = {
+          ...userData,
+          'account_name': vaData['account_name'],
+          'account_number': vaData['account_number'],
+          'bank_name': vaData['bank_name'],
+          'country': vaData['country'],
+          'currency_sign': vaData['currency_sign'],
+        };
         // Step 3: Store login status and updated user info
         await secureStorage.write(key: 'is_logged_in', value: 'true');
         await secureStorage.write(
           key: 'logged_in_user',
-          value: jsonEncode(responseData['data']),
+          value: jsonEncode(enrichedUser),
         );
+        print(enrichedUser);
         showCustomSnackBar(context, responseData['message']);
 
         return true;
@@ -212,11 +225,23 @@ class RegisterService {
 
       // Step 2: Handle response
       if (response.statusCode == 200 && responseData['success'] == true) {
+        final userData = responseData['user'] ?? {};
+        final vaData = responseData['virtualAccount'] ?? {};
+
+        // Merge into one JSON
+        final enrichedUser = {
+          ...userData,
+          'account_name': vaData['account_name'],
+          'account_number': vaData['account_number'],
+          'bank_name': vaData['bank_name'],
+          'country': vaData['country'],
+          'currency_sign': vaData['currency_sign'],
+        };
         // Store login status and user info
         await secureStorage.write(key: 'is_logged_in', value: 'true');
         await secureStorage.write(
           key: 'logged_in_user',
-          value: jsonEncode(responseData['data']),
+          value: jsonEncode(enrichedUser),
         );
 
         showCustomSnackBar(context, responseData['message']);
@@ -400,5 +425,30 @@ class RegisterService {
       print(stacktrace);
     }
     return {"data": [], "current_page": page, "next_page_url": null};
+  }
+
+  Future<void> forgotPassword(BuildContext context, String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/user/forgot-password"),
+        body: {"email": email},
+      );
+
+      // Decode backend response
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        showCustomSnackBar(context, responseData['message'] ?? "Success.");
+      } else {
+        // Show backend error message
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "An error occurred.",
+        );
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      print(e);
+    }
   }
 }

@@ -41,27 +41,19 @@ android {
             signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
-
-            // ✅ Split only for release builds
-            splits {
-                abi {
-                    enable true
-                    reset()
-                    include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
-                    universalApk false
-                }
-            }
         }
-
         debug {
-            signingConfig signingConfigs.debug
+            // Uses default debug keystore
+        }
+    }
 
-            // ✅ Ensure debug produces one universal APK
-            splits {
-                abi {
-                    enable false
-                }
-            }
+    // ✅ Move splits outside buildTypes
+    splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            universalApk false // set to true if you want a single APK
         }
     }
 
@@ -77,3 +69,4 @@ android {
         }
     }
 }
+

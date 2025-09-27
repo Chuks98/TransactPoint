@@ -3,7 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import '../../theme.dart';
 
 class CustomCarousel extends StatelessWidget {
-  final List<Map<String, String>> items;
+  final List<Map<String, dynamic>> items;
 
   const CustomCarousel({super.key, required this.items});
 
@@ -20,7 +20,7 @@ class CustomCarousel extends StatelessWidget {
           items.map((item) {
             return _buildCarouselCard(
               context,
-              icon: item["icon"],
+              icon: item["icon"] as IconData?,
               title: item["title"] ?? "",
               subtitle: item["subtitle"] ?? "",
             );
@@ -31,7 +31,7 @@ class CustomCarousel extends StatelessWidget {
   /// 🔹 Reusable Carousel Card widget
   Widget _buildCarouselCard(
     BuildContext context, {
-    String? icon,
+    IconData? icon,
     required String title,
     required String subtitle,
   }) {
@@ -53,7 +53,7 @@ class CustomCarousel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (icon != null) ...[
-              Icon(icon as IconData?, size: 40, color: Colors.white),
+              Icon(icon, size: 40, color: Colors.white),
               const SizedBox(width: 16),
             ],
             Expanded(
@@ -63,16 +63,16 @@ class CustomCarousel extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                    ), // 👈 white for contrast
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                    ), // 👈 softer text
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                   ),
                 ],
               ),

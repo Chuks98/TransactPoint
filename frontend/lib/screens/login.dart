@@ -59,14 +59,6 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  Future<void> _loadUser() async {
-    final user = await _authService.getLoggedInUser();
-    print("This is the logged in user: $user");
-    setState(() {
-      _loggedInUser = user;
-    });
-  }
-
   String _maskPhone(String phone) {
     if (phone.length < 4) return phone;
     return "${phone.substring(0, 3)}****${phone.substring(phone.length - 3)}";
@@ -76,13 +68,6 @@ class _LoginScreenState extends State<LoginScreen>
   void dispose() {
     _pulseController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadBiometricPreference() async {
-    bool pref = await _authService.getBiometricPreference();
-    setState(() {
-      _useBiometric = pref;
-    });
   }
 
   void _onNumberPressed(String number) {
@@ -99,12 +84,31 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => _pin = _pin.substring(0, _pin.length - 1));
   }
 
+  Future<void> _loadUser() async {
+    final user = await _authService.getLoggedInUser();
+    if (!mounted) return; // ✅ Prevents setState after dispose
+    setState(() {
+      _loggedInUser = user;
+    });
+  }
+
+  Future<void> _loadBiometricPreference() async {
+    bool pref = await _authService.getBiometricPreference();
+    if (!mounted) return; // ✅
+    setState(() {
+      _useBiometric = pref;
+    });
+  }
+
   Future<void> _authenticate() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
+
     bool success = false;
 
     if (_useBiometric) {
       success = await _authService.authenticateBiometric();
+      if (!mounted) return; // ✅
       showCustomSnackBar(
         context,
         success
@@ -113,17 +117,20 @@ class _LoginScreenState extends State<LoginScreen>
       );
     } else {
       if (_pin.length != 6) {
+        if (!mounted) return; // ✅
         showCustomSnackBar(context, "PIN must be 6 digits");
         setState(() => _isLoading = false);
         return;
       }
       success = await _authService.loginWithPin(context, _pin);
-
+      if (!mounted) return; // ✅
       if (!success) setState(() => _pin = '');
     }
 
-    if (success) Navigator.pushReplacementNamed(context, '/home');
-    setState(() => _isLoading = false);
+    if (success && mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _showFingerprintBottomSheet(BuildContext context) async {

@@ -14,6 +14,7 @@ import 'package:transact_point/screens/cable.dart';
 import 'package:transact_point/screens/data.dart';
 import 'package:transact_point/screens/edit-account.dart';
 import 'package:transact_point/screens/electricity.dart';
+import 'package:transact_point/screens/forgot-password.dart';
 import 'package:transact_point/screens/fund-account.dart';
 import 'package:transact_point/screens/insurance.dart';
 import 'package:transact_point/screens/loan.dart';
@@ -212,6 +213,7 @@ class _TransactPointAppState extends State<TransactPointApp> {
                 body: PrivacyPolicyScreen(),
                 showBackButton: true,
               ),
+          '/forgot-password': (context) => ForgotPasswordScreen(),
 
           // 🔹 Admin routes
           '/admin-login': (context) => const AdminLoginScreen(),

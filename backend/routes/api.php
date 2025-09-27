@@ -31,6 +31,7 @@ Route::prefix('user')->group(function () {
     Route::get('/get-single-user/{id}', [UserController::class, 'getSingleUser']);
     Route::put('/update-single-user/{id}', [UserController::class, 'updateSingleUser']);
     Route::delete('/delete-single-user/{id}', [UserController::class, 'deleteSingleUser']);
+    Route::post('/forgot-password', [UserController::class, 'forgotPassword']);
 
     // Wallet routes
     Route::get('/get-wallet/{userId}', [UserController::class, 'getWallet']);
