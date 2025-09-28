@@ -16,7 +16,9 @@ class User extends Authenticatable
         'phoneNumber',
         'email',
         'password',
-        'biometric', // ✅ replaced walletId & walletBalance
+        'biometric',
+        'otp',
+        'otp_expires_at',
     ];
 
     // Relationship with transactions

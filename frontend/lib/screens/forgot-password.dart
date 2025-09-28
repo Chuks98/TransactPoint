@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:transact_point/screens/custom-widgets/snackbar.dart';
+import 'package:transact_point/screens/otp.dart';
 import '../services/user-api-services.dart'; // 👈 adjust if needed
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -18,14 +19,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      await _registerService.forgotPassword(
+      final response = await _registerService.forgotPassword(
         context,
         _emailController.text.trim(),
       );
 
       setState(() => _isLoading = false);
 
-      // Navigator.pop(context); // 👈 Go back to login screen
+      if (response == true) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OTPScreen(email: _emailController.text.trim()),
+          ),
+        );
+      }
     }
   }
 

@@ -480,7 +480,6 @@ class UserController extends Controller
     public function forgotPassword(Request $request)
     {
         try {
-
             $request->validate([
                 'email' => 'required|email'
             ]);
@@ -488,7 +487,9 @@ class UserController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                Log::warning('Forgot password failed: User not found.', ['email' => $request->email]);
+                Log::warning("Forgot Password attempt failed: Email not found", [
+                    'email' => $request->email,
+                ]);
 
                 return response()->json([
                     'success' => false,
@@ -496,28 +497,138 @@ class UserController extends Controller
                 ], 404);
             }
 
-            // 🔑 Generate a new 6-digit numeric password
-            $newPassword = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            Log::info('Generated new password.', ['email' => $user->email, 'newPassword' => $newPassword]);
+            // 🔑 Generate 6-digit OTP
+            $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-            // 🔒 Hash it and update user
-            $user->password = Hash::make($newPassword);
+            $user->otp = $otp;
+            $user->otp_expires_at = now()->addMinute();
             $user->save();
-            Log::info('Password updated in database.', ['user_id' => $user->id]);
 
-            // 📧 Send email with new password
-            Mail::to($user->email)->send(new ForgotPasswordMail($user, $newPassword));
-            Log::info('Forgot password email sent.', ['email' => $user->email]);
+            // 📧 Send OTP to email
+            Mail::to($user->email)->send(new ForgotPasswordMail($user, $otp));
+
+            \Log::info("OTP generated and sent successfully", [
+                'email' => $user->email,
+                'otp' => $otp,
+                'expires_at' => $user->otp_expires_at,
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'A new password has been sent to your email.',
+                'message' => 'OTP has been sent to your email.',
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error("Forgot Password failed", [
+                'email' => $request->email ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong.',
+            ], 500);
+        }
+    }
+
+
+
+
+    public function verifyOTP(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            Log::warning("OTP verification failed: User not found", [
+                'email' => $request->email,
+            ]);
+            return response()->json(['success' => false, 'message' => 'Invalid OTP'], 400);
+        }
+
+        if ($user->otp !== $request->otp) {
+            Log::warning("OTP verification failed: Wrong OTP", [
+                'email' => $request->email,
+                'provided_otp' => $request->otp,
+                'expected_otp' => $user->otp,
+            ]);
+            return response()->json(['success' => false, 'message' => 'Invalid OTP'], 400);
+        }
+
+        if (now()->gt($user->otp_expires_at)) {
+            Log::warning("OTP verification failed: OTP expired", [
+                'email' => $request->email,
+                'expired_at' => $user->otp_expires_at,
+            ]);
+            return response()->json(['success' => false, 'message' => 'OTP expired'], 400);
+        }
+
+        Log::info("OTP verified successfully", [
+            'email' => $request->email,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'OTP verified']);
+    }
+
+
+
+
+
+    public function resetPassword(Request $request)
+    {
+        try {
+            // 1️⃣ Validate request
+            $request->validate([
+                'email' => 'required|email',
+                'new_password' => 'required|min:6'
+            ]);
+
+            // 2️⃣ Fetch user by email
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                Log::warning("Password reset failed: User not found", [
+                    'email' => $request->email,
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found',
+                ], 404);
+            }
+
+            // 3️⃣ Update password and clear OTP
+            $user->password = Hash::make($request->new_password);
+            $user->otp = null;
+            $user->otp_expires_at = null;
+            $user->save();
+
+            // 4️⃣ Fetch virtual account
+            $va = VirtualAccount::where('user_id', $user->id)->first();
+
+            Log::info("Password reset successful", [
+                'user_id' => $user->id,
+                'email'   => $user->email,
+                'virtual_account_exists' => $va ? true : false,
+            ]);
+
+            // 5️⃣ Return enriched response (same structure as login)
+            return response()->json([
+                'success' => true,
+                'message' => 'Password reset successful',
+                'user' => $user,
+                'virtualAccount' => $va, // null if not exists
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Validation error in forgotPassword.', [
-                'email' => $request->email,
-                'errors' => $e->errors()
+            Log::warning("Validation failed during reset password", [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
             ]);
 
             return response()->json([
@@ -527,16 +638,19 @@ class UserController extends Controller
             ], 422);
 
         } catch (\Exception $e) {
-            Log::error('Exception in forgotPassword.', [
-                'email' => $request->email ?? null,
+            Log::error("Error during reset password", [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->all(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong. Please try again later.',
+                'message' => 'Something went wrong. Please try again.',
             ], 500);
         }
     }
+
+
+
 }

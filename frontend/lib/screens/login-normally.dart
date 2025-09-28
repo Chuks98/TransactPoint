@@ -20,20 +20,13 @@ class _LoginNormallyScreenState extends State<LoginNormallyScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      try {
-        await _registerService.loginNormally(
-          context,
-          _phoneController.text.trim(),
-          _pinController.text.trim(),
-        );
+      await _registerService.loginNormally(
+        context,
+        _phoneController.text.trim(),
+        _pinController.text.trim(),
+      );
 
-        // Navigate to home/dashboard after success
-        Navigator.pushReplacementNamed(context, '/home');
-      } catch (e) {
-        showCustomSnackBar(context, "Login failed: $e");
-      } finally {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
   }
 

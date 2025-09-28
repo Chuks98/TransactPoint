@@ -245,6 +245,8 @@ class RegisterService {
         );
 
         showCustomSnackBar(context, responseData['message']);
+        // Navigate to home/dashboard after success
+        Navigator.pushReplacementNamed(context, '/home');
         return true;
       } else {
         showCustomSnackBar(context, responseData['message'] ?? 'Login failed.');
@@ -427,28 +429,95 @@ class RegisterService {
     return {"data": [], "current_page": page, "next_page_url": null};
   }
 
-  Future<void> forgotPassword(BuildContext context, String email) async {
+  Future<bool> forgotPassword(BuildContext context, String email) async {
     try {
       final response = await http.post(
         Uri.parse("$baseUrl/user/forgot-password"),
         body: {"email": email},
       );
 
-      // Decode backend response
       final responseData = jsonDecode(response.body);
-
       if (response.statusCode == 200 && responseData['success'] == true) {
         showCustomSnackBar(context, responseData['message'] ?? "Success.");
+        return true;
       } else {
         // Show backend error message
         showCustomSnackBar(
           context,
           responseData['message'] ?? "An error occurred.",
         );
+        return false;
       }
     } catch (e) {
       showCustomSnackBar(context, "Error: $e");
-      print(e);
+      return false;
+    }
+  }
+
+  Future<bool> verifyOtp(BuildContext context, String email, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/user/verify-otp"),
+        body: {"email": email, "otp": otp},
+      );
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        showCustomSnackBar(context, responseData['message']);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(
+    BuildContext context,
+    String email,
+    String newPassword,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/user/reset-password"),
+        body: {"email": email, "new_password": newPassword},
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        final userData = responseData['user'] ?? {};
+        final vaData = responseData['virtualAccount'] ?? {};
+
+        // Merge into one JSON
+        final enrichedUser = {
+          ...userData,
+          'account_name': vaData['account_name'],
+          'account_number': vaData['account_number'],
+          'bank_name': vaData['bank_name'],
+          'country': vaData['country'],
+          'currency_sign': vaData['currency_sign'],
+        };
+        // Store login status and user info
+        await secureStorage.write(key: 'is_logged_in', value: 'true');
+        await secureStorage.write(
+          key: 'logged_in_user',
+          value: jsonEncode(enrichedUser),
+        );
+
+        showCustomSnackBar(context, responseData['message']);
+        // Navigate to home/dashboard after success
+        Navigator.pushReplacementNamed(context, '/home');
+        return true;
+      } else {
+        showCustomSnackBar(context, responseData['message']);
+        return false;
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      return false;
     }
   }
 }
