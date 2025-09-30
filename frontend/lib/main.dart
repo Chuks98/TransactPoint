@@ -20,6 +20,8 @@ import 'package:transact_point/screens/insurance.dart';
 import 'package:transact_point/screens/loan.dart';
 import 'package:transact_point/screens/login-normally.dart';
 import 'package:transact_point/screens/privacy.dart';
+import 'package:transact_point/screens/saving-plans.dart';
+import 'package:transact_point/screens/savings.dart';
 import 'package:transact_point/screens/transactions.dart';
 import 'package:transact_point/screens/settings.dart';
 import 'package:flutter/material.dart';
@@ -169,6 +171,12 @@ class _TransactPointAppState extends State<TransactPointApp> {
               (context) => const MainLayout(
                 title: "My Bank Details",
                 body: BankDetailsScreen(),
+                showBackButton: true,
+              ),
+          '/savings':
+              (context) => const MainLayout(
+                title: "My Savings",
+                body: SavingsScreen(),
                 showBackButton: true,
               ),
           '/edit-account':

@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     "Transfer": {},
     "My Account": {},
     "My Bank Details": {},
-    "More": {},
+    "Savings": {},
   };
   bool _loading = true;
 
@@ -100,8 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return Icons.account_balance_wallet;
       case "my bank details":
         return Icons.money;
-      case "more":
-        return Icons.more_horiz;
+      case "savings":
+        return Icons.savings;
       default:
         return Icons.more_horiz;
     }

@@ -265,4 +265,119 @@ class AdminController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Failed to fetch wallet'], 500);
         }
     }
+
+
+
+
+
+
+    // savings Plans CRUD system
+    public function getPlans()
+    {
+        try {
+            $plans = Plan::all();
+
+            \Log::info("Plans fetched successfully", ['plans' => $plans]);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $plans
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Fetching plans failed: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch plans'
+            ], 500);
+        }
+    }
+
+    public function createPlan(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'min_amount' => 'required|numeric|min:0',
+                'max_amount' => 'nullable|numeric|min:0',
+                'duration_months' => 'required|integer|min:0',
+                'interest_rate' => 'nullable|numeric|min:0',
+                'interest_type' => 'nullable|string|in:simple,compound',
+                'with_interest' => 'boolean',
+                'is_locked' => 'boolean',
+            ]);
+
+            $plan = Plan::create($validated);
+
+            \Log::info("Plan created successfully", ['plan' => $plan]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Plan created successfully',
+                'data' => $plan
+            ], 201);
+        } catch (\Exception $e) {
+            \Log::error("Creating plan failed: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create plan'
+            ], 500);
+        }
+    }
+
+    public function updatePlan(Request $request, $id)
+    {
+        try {
+            $plan = Plan::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'min_amount' => 'required|numeric|min:0',
+                'max_amount' => 'nullable|numeric|min:0',
+                'duration_months' => 'required|integer|min:0',
+                'interest_rate' => 'nullable|numeric|min:0',
+                'interest_type' => 'nullable|string|in:simple,compound',
+                'with_interest' => 'boolean',
+                'is_locked' => 'boolean',
+            ]);
+
+            $plan->update($validated);
+
+            \Log::info("Plan updated successfully", ['plan' => $plan]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Plan updated successfully',
+                'data' => $plan
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Updating plan failed: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update plan'
+            ], 500);
+        }
+    }
+
+    public function deletePlan($id)
+    {
+        try {
+            $plan = Plan::findOrFail($id);
+            $plan->delete();
+
+            \Log::info("Plan deleted successfully", ['plan_id' => $id]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Plan deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Deleting plan failed: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete plan'
+            ], 500);
+        }
+    }
 }

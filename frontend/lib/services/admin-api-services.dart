@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:transact_point/models/saving-plan.dart';
 import '../screens/custom-widgets/snackbar.dart';
 
 class AdminService {
@@ -249,5 +250,129 @@ class AdminService {
       showCustomSnackBar(context, 'Error fetching wallet: $e');
     }
     return {'status': 'error', 'message': 'Failed to fetch wallet'};
+  }
+
+  // Savings Plans CRUD system
+  Future<List<Plan>> getPlans(BuildContext context) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin/get-plans');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['status'] == 'success') {
+          final List data = body['data'];
+          return data.map((e) => Plan.fromJson(e)).toList();
+        }
+        showCustomSnackBar(context, body['message'] ?? 'Failed to fetch plans');
+      } else {
+        showCustomSnackBar(
+          context,
+          'Failed to fetch plans: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      showCustomSnackBar(context, 'Error fetching plans: $e');
+    }
+    return [];
+  }
+
+  /// Create a new plan
+  Future<bool> createPlan(
+    BuildContext context,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin/create-plan');
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        if (res['status'] == 'success') {
+          showCustomSnackBar(
+            context,
+            res['message'] ?? 'Plan created successfully',
+          );
+          return true;
+        }
+        showCustomSnackBar(context, res['message'] ?? 'Failed to create plan');
+      } else {
+        showCustomSnackBar(
+          context,
+          'Failed to create plan: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      showCustomSnackBar(context, 'Error creating plan: $e');
+    }
+    return false;
+  }
+
+  /// Update existing plan
+  Future<bool> updatePlan(
+    BuildContext context,
+    int id,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin/update-plan/$id');
+      final response = await http.put(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        if (res['status'] == 'success') {
+          showCustomSnackBar(
+            context,
+            res['message'] ?? 'Plan updated successfully',
+          );
+          return true;
+        }
+        showCustomSnackBar(context, res['message'] ?? 'Failed to update plan');
+      } else {
+        showCustomSnackBar(
+          context,
+          'Failed to update plan: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      showCustomSnackBar(context, 'Error updating plan: $e');
+    }
+    return false;
+  }
+
+  /// Delete a plan
+  Future<bool> deletePlan(BuildContext context, int id) async {
+    try {
+      final url = Uri.parse('$baseUrl/admin/delete-plan/$id');
+      final response = await http.delete(url);
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        if (res['status'] == 'success') {
+          showCustomSnackBar(
+            context,
+            res['message'] ?? 'Plan deleted successfully',
+          );
+          return true;
+        }
+        showCustomSnackBar(context, res['message'] ?? 'Failed to delete plan');
+      } else {
+        showCustomSnackBar(
+          context,
+          'Failed to delete plan: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      showCustomSnackBar(context, 'Error deleting plan: $e');
+    }
+    return false;
   }
 }

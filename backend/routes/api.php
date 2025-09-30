@@ -63,4 +63,10 @@ Route::prefix('admin')->group(function () {
     // Transactions
     Route::get('/transactions', [AdminController::class, 'getAllTransactions']);
     Route::get('/transactions/status/{status}', [AdminController::class, 'getTransactionsByStatus']);
+
+    // Savings plans CRUD system
+    Route::get('/get-plans', [AdminController::class, 'getPlans']);
+    Route::post('/create-plan', [AdminController::class, 'createPlan']);
+    Route::put('/update-plan/{id}', [AdminController::class, 'updatePlan']);
+    Route::delete('/delete-plan/{id}', [AdminController::class, 'deletePlan']);
 });

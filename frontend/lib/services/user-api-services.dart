@@ -6,6 +6,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../models/user-model.dart';
+import '../models/saving-plan.dart';
+import '../models/user-savings.dart';
+import '../screens/saving-plan-details.dart';
+
 import '../screens/custom-widgets/snackbar.dart';
 
 class RegisterService {
@@ -513,6 +517,149 @@ class RegisterService {
         return true;
       } else {
         showCustomSnackBar(context, responseData['message']);
+        return false;
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      return false;
+    }
+  }
+
+  Future<List<Plan>> getPlans(BuildContext context) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/plans'));
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        final List plans = responseData['plans'] ?? [];
+        final result = plans.map((e) => Plan.fromJson(e)).toList();
+
+        showCustomSnackBar(context, responseData['message'] ?? "Plans loaded");
+        return result;
+      } else {
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Failed to load plans",
+        );
+        return [];
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      return [];
+    }
+  }
+
+  Future<Plan?> getPlan(BuildContext context, int id) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/plans/$id'));
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        final plan = Plan.fromJson(responseData['plan']);
+        showCustomSnackBar(context, responseData['message'] ?? "Plan loaded");
+        return plan;
+      } else {
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Failed to fetch plan",
+        );
+        return null;
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      return null;
+    }
+  }
+
+  Future<bool> createSaving(
+    BuildContext context, {
+    required int userId,
+    required int planId,
+    required double amount,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/savings'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          'user_id': userId,
+          'plan_id': planId,
+          'amount': amount,
+        }),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if ((response.statusCode == 201 || response.statusCode == 200) &&
+          responseData['success'] == true) {
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Saving created successfully",
+        );
+        return true;
+      } else {
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Failed to create saving",
+        );
+        return false;
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      return false;
+    }
+  }
+
+  Future<List<UserSaving>> getUserSavings(
+    BuildContext context,
+    int userId,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId/savings'),
+      );
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        final List savings = responseData['savings'] ?? [];
+        final result = savings.map((e) => UserSaving.fromJson(e)).toList();
+
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Savings loaded",
+        );
+        return result;
+      } else {
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Failed to fetch savings",
+        );
+        return [];
+      }
+    } catch (e) {
+      showCustomSnackBar(context, "Error: $e");
+      return [];
+    }
+  }
+
+  Future<bool> withdrawSaving(BuildContext context, int savingId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/savings/$savingId/withdraw'),
+      );
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData['success'] == true) {
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Withdrawal successful",
+        );
+        return true;
+      } else {
+        showCustomSnackBar(
+          context,
+          responseData['message'] ?? "Failed to withdraw",
+        );
         return false;
       }
     } catch (e) {
