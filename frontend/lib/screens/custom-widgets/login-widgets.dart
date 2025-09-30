@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 typedef PinCallback = void Function(String number);
 typedef VoidCallbackAsync = Future<void> Function();
 
+<<<<<<< HEAD
 /// Profile avatar circle
 Widget profileAvatar(BuildContext context) {
   final theme = Theme.of(context);
@@ -52,6 +53,8 @@ Widget headerSection(
   );
 }
 
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 /// Keypad button widget
 Widget keypadButton(
   BuildContext context,
@@ -70,7 +73,11 @@ Widget keypadButton(
       }
     },
     child: Container(
+<<<<<<< HEAD
       height: 30,
+=======
+      height: 70,
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(14),
@@ -184,6 +191,7 @@ Widget pinSection(
         ),
         const SizedBox(height: 20),
         pinIndicators(context, pin),
+<<<<<<< HEAD
         const SizedBox(height: 20),
         GestureDetector(
           onTap: () {
@@ -197,6 +205,19 @@ Widget pinSection(
           ),
         ),
         const SizedBox(height: 20),
+=======
+        // const SizedBox(height: 20),
+        // GestureDetector(
+        //   onTap: () {},
+        //   child: Text(
+        //     'Forgot Password?',
+        //     style: theme.textTheme.bodyMedium!.copyWith(
+        //       color: theme.colorScheme.primary,
+        //     ),
+        //   ),
+        // ),
+        const SizedBox(height: 30),
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 40),
           width: double.infinity,
@@ -222,7 +243,11 @@ Widget pinSection(
                     ),
           ),
         ),
+<<<<<<< HEAD
         const SizedBox(height: 20),
+=======
+        const SizedBox(height: 30),
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: GridView.builder(
@@ -230,9 +255,15 @@ Widget pinSection(
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
+<<<<<<< HEAD
               childAspectRatio: 1.7,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
+=======
+              childAspectRatio: 1.2,
+              crossAxisSpacing: 20,
+              mainAxisSpacing: 15,
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
             ),
             itemCount: 12,
             itemBuilder: (context, index) {
@@ -340,6 +371,57 @@ Widget biometricSection(
   );
 }
 
+<<<<<<< HEAD
+=======
+/// Header section with app title and user info
+Widget headerSection(
+  BuildContext context, {
+  Map<String, dynamic>? loggedInUser,
+  required String Function(String) maskPhone,
+}) {
+  final theme = Theme.of(context);
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(
+        'Transact Point',
+        style: theme.textTheme.titleLarge!.copyWith(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+      const SizedBox(height: 40),
+      profileAvatar(context),
+      const SizedBox(height: 20),
+      Text(
+        loggedInUser != null
+            ? "${(loggedInUser['firstName'] ?? '').toString().toUpperCase()} "
+                "(${maskPhone(loggedInUser['phoneNumber'] ?? '')})"
+            : "Welcome Guest",
+        style: theme.textTheme.titleMedium!.copyWith(
+          color: theme.colorScheme.onBackground,
+        ),
+      ),
+    ],
+  );
+}
+
+/// Profile avatar circle
+Widget profileAvatar(BuildContext context) {
+  final theme = Theme.of(context);
+  return Container(
+    width: 80,
+    height: 80,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: theme.cardTheme.color,
+    ),
+    child: Icon(Icons.person, size: 40, color: theme.colorScheme.secondary),
+  );
+}
+
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 /// Switch login mode (fingerprint ↔ pin)
 Widget switchLoginModeText(
   BuildContext context, {
@@ -369,7 +451,11 @@ Widget switchLoginModeText(
               Navigator.pushNamed(context, '/login-normally');
             },
             child: Text(
+<<<<<<< HEAD
               "Trouble logging in? Use phone number + PIN",
+=======
+              "Login Normally",
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
               style: theme.textTheme.bodyMedium!.copyWith(
                 color: theme.colorScheme.primary,
               ),

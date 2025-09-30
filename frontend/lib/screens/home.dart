@@ -31,7 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
     "Transfer": {},
     "My Account": {},
     "My Bank Details": {},
+<<<<<<< HEAD
     "Savings": {},
+=======
+    "More": {},
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
   };
   bool _loading = true;
 
@@ -48,7 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
       String? userJson = await storage.read(key: "logged_in_user");
       if (userJson == null) return;
 
+<<<<<<< HEAD
       final userMap = jsonDecode(userJson) as Map<String, dynamic>? ?? {};
+=======
+      final userMap = jsonDecode(userJson);
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
       final firstName = userMap['firstName'] ?? "";
       final lastName = userMap['lastName'] ?? "";
       userId = userMap['id']?.toString();
@@ -98,15 +106,23 @@ class _HomeScreenState extends State<HomeScreen> {
         return Icons.swap_horiz;
       case "my account":
         return Icons.account_balance_wallet;
+<<<<<<< HEAD
       case "my bank details":
         return Icons.money;
       case "savings":
         return Icons.savings;
+=======
+      case "bank-details":
+        return Icons.money;
+      case "more":
+        return Icons.more_horiz;
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
       default:
         return Icons.more_horiz;
     }
   }
 
+<<<<<<< HEAD
   String _formatBalance(String balance) {
     try {
       final value = double.tryParse(balance) ?? 0.0;
@@ -120,6 +136,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final ThemeData apptheme = Theme.of(context);
+=======
+  @override
+  Widget build(BuildContext context) {
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
@@ -138,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: CustomCarousel(
                   items: const [
                     {
+<<<<<<< HEAD
                       "title": "Pay Bills Easily",
                       "subtitle": "Electricity, Cable, Internet & more",
                       "icon": Icons.receipt_long, // ✅ use constant
@@ -151,6 +172,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       "title": "Quick Airtime & Data",
                       "subtitle": "Recharge instantly anytime",
                       "icon": Icons.phone_android,
+=======
+                      "icon": "0xe0af",
+                      "title": "Pay Bills Easily",
+                      "subtitle": "Electricity, Cable, Internet & more",
+                    },
+                    {
+                      "icon": "0xe041",
+                      "title": "Invest Smartly",
+                      "subtitle": "Grow your money with us",
+                    },
+                    {
+                      "icon": "0xe1bc",
+                      "title": "Quick Airtime & Data",
+                      "subtitle": "Recharge instantly anytime",
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
                     },
                   ],
                 ),
@@ -171,6 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 children: [
                   Text(
+<<<<<<< HEAD
                     // _isBalanceVisible
                     //     ? "${currencySign ?? ""} ${currencyFormatter.format(double.tryParse(userBalance) ?? 0)}"
                     //         .trim()
@@ -178,6 +215,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     _isBalanceVisible
                         ? "${currencySign ?? ""} ${_formatBalance(userBalance)}"
                         : "${currencySign ?? ""}******",
+=======
+                    _isBalanceVisible
+                        ? "${currencySign ?? ""} ${currencyFormatter.format(double.tryParse(userBalance) ?? 0)}"
+                            .trim()
+                        : "${currencySign ?? ""}${"******"}".trim(),
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -206,6 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               /// 🔹 Categories
               !_loading && _categories.isNotEmpty
+<<<<<<< HEAD
                   ? Builder(
                     builder: (context) {
                       final keysList = _categories.keys.toList();
@@ -336,6 +380,72 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       );
                     },
+=======
+                  ? Column(
+                    children: [
+                      for (int i = 0; i < _categories.keys.length; i += 3)
+                        _buildServiceGrid(
+                          _categories.keys.skip(i).take(3).map((categoryName) {
+                            return SizedBox(
+                              height: 110, // 🔹 fixed height for all boxes
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    final routeName =
+                                        categoryName.toLowerCase();
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/$routeName',
+                                    ).then((_) {
+                                      _loadUserData();
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(14),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            _getIconForCategory(categoryName),
+                                            color: AppColors.primary,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          categoryName.toUpperCase(),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 1, // 🔹 single line only
+                                          overflow:
+                                              TextOverflow
+                                                  .ellipsis, // 🔹 cut off if too long
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                    ],
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
                   )
                   : const Center(child: CircularProgressIndicator()),
             ],

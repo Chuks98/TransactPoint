@@ -16,9 +16,13 @@ class User extends Authenticatable
         'phoneNumber',
         'email',
         'password',
+<<<<<<< HEAD
         'biometric',
         'otp',
         'otp_expires_at',
+=======
+        'biometric', // ✅ replaced walletId & walletBalance
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
     ];
 
     // Relationship with transactions
@@ -26,9 +30,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class);
     }
+<<<<<<< HEAD
 
     // public function virtualAccount()
     // {
     //     return $this->hasOne(VirtualAccount::class, 'user_id', 'id');
     // }
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 }

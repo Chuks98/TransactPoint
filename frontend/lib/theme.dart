@@ -29,7 +29,11 @@ const TextTheme _baseText = TextTheme(
     height: 1.30,
   ), // ~subtitle1
   bodyMedium: TextStyle(fontSize: 14, height: 1.40), // ~bodyText2
+<<<<<<< HEAD
   bodySmall: TextStyle(fontSize: 10, height: 1.15), // ~caption
+=======
+  bodySmall: TextStyle(fontSize: 11, height: 1.25), // ~caption
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 );
 
 /// LIGHT THEME (default)

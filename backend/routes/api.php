@@ -31,9 +31,12 @@ Route::prefix('user')->group(function () {
     Route::get('/get-single-user/{id}', [UserController::class, 'getSingleUser']);
     Route::put('/update-single-user/{id}', [UserController::class, 'updateSingleUser']);
     Route::delete('/delete-single-user/{id}', [UserController::class, 'deleteSingleUser']);
+<<<<<<< HEAD
     Route::post('/forgot-password', [UserController::class, 'forgotPassword']);
     Route::post('/verify-otp', [UserController::class, 'verifyOTP']);
     Route::post('/reset-password', [UserController::class, 'resetPassword']);
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 
     // Wallet routes
     Route::get('/get-wallet/{userId}', [UserController::class, 'getWallet']);
@@ -63,10 +66,13 @@ Route::prefix('admin')->group(function () {
     // Transactions
     Route::get('/transactions', [AdminController::class, 'getAllTransactions']);
     Route::get('/transactions/status/{status}', [AdminController::class, 'getTransactionsByStatus']);
+<<<<<<< HEAD
 
     // Savings plans CRUD system
     Route::get('/get-plans', [AdminController::class, 'getPlans']);
     Route::post('/create-plan', [AdminController::class, 'createPlan']);
     Route::put('/update-plan/{id}', [AdminController::class, 'updatePlan']);
     Route::delete('/delete-plan/{id}', [AdminController::class, 'deletePlan']);
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 });

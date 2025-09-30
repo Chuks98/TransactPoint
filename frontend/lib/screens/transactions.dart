@@ -175,6 +175,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                       12, // 👈 little margin on the sides
                                 ),
                                 decoration: BoxDecoration(
+<<<<<<< HEAD
+=======
+                                  color: Colors.white,
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
                                   borderRadius: BorderRadius.circular(
                                     20,
                                   ), // 👈 updated radius

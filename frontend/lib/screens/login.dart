@@ -59,6 +59,17 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+<<<<<<< HEAD
+=======
+  Future<void> _loadUser() async {
+    final user = await _authService.getLoggedInUser();
+    print("This is the logged in user: $user");
+    setState(() {
+      _loggedInUser = user;
+    });
+  }
+
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
   String _maskPhone(String phone) {
     if (phone.length < 4) return phone;
     return "${phone.substring(0, 3)}****${phone.substring(phone.length - 3)}";
@@ -70,6 +81,16 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
+<<<<<<< HEAD
+=======
+  Future<void> _loadBiometricPreference() async {
+    bool pref = await _authService.getBiometricPreference();
+    setState(() {
+      _useBiometric = pref;
+    });
+  }
+
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
   void _onNumberPressed(String number) {
     if (_pin.length < 6) {
       setState(() {
@@ -84,6 +105,7 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() => _pin = _pin.substring(0, _pin.length - 1));
   }
 
+<<<<<<< HEAD
   Future<void> _loadUser() async {
     final user = await _authService.getLoggedInUser();
     if (!mounted) return; // ✅ Prevents setState after dispose
@@ -104,11 +126,18 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
     setState(() => _isLoading = true);
 
+=======
+  Future<void> _authenticate() async {
+    setState(() => _isLoading = true);
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
     bool success = false;
 
     if (_useBiometric) {
       success = await _authService.authenticateBiometric();
+<<<<<<< HEAD
       if (!mounted) return; // ✅
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
       showCustomSnackBar(
         context,
         success
@@ -117,12 +146,16 @@ class _LoginScreenState extends State<LoginScreen>
       );
     } else {
       if (_pin.length != 6) {
+<<<<<<< HEAD
         if (!mounted) return; // ✅
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
         showCustomSnackBar(context, "PIN must be 6 digits");
         setState(() => _isLoading = false);
         return;
       }
       success = await _authService.loginWithPin(context, _pin);
+<<<<<<< HEAD
       if (!mounted) return; // ✅
       if (!success) setState(() => _pin = '');
     }
@@ -131,6 +164,14 @@ class _LoginScreenState extends State<LoginScreen>
       Navigator.pushReplacementNamed(context, '/home');
     }
     if (mounted) setState(() => _isLoading = false);
+=======
+
+      if (!success) setState(() => _pin = '');
+    }
+
+    if (success) Navigator.pushReplacementNamed(context, '/home');
+    setState(() => _isLoading = false);
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
   }
 
   Future<void> _showFingerprintBottomSheet(BuildContext context) async {

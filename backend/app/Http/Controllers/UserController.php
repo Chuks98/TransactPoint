@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+<<<<<<< HEAD
 use App\Mail\ForgotPasswordMail;
 use Illuminate\Support\Facades\Mail;
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 use App\Services\FlutterwaveService;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -140,17 +143,29 @@ class UserController extends Controller
     public function login(Request $request)
     {
         try {
+<<<<<<< HEAD
             // 1️⃣ Validate incoming request
+=======
+            // Validate incoming request
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
             $request->validate([
                 'phoneNumber' => 'required|string|max:20',
                 'password'    => 'required|string|min:4|max:6', // PIN length
             ]);
 
+<<<<<<< HEAD
             // 2️⃣ Fetch user by phone number
             $user = User::where('phoneNumber', $request->phoneNumber)->first();
 
             if (!$user) {
                 \Log::warning('Login failed: user not found', [
+=======
+            // Find user
+            $user = User::where('phoneNumber', $request->phoneNumber)->first();
+
+            if (!$user) {
+                \Log::warning('Login attempt failed: user not found', [
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
                     'phoneNumber' => $request->phoneNumber,
                 ]);
 
@@ -160,9 +175,15 @@ class UserController extends Controller
                 ], 404);
             }
 
+<<<<<<< HEAD
             // 3️⃣ Verify password
             if (!$user->password || !\Hash::check($request->password, $user->password)) {
                 \Log::warning('Login failed: incorrect PIN', [
+=======
+            // Verify password
+            if (!$user->password || !Hash::check($request->password, $user->password)) {
+                \Log::warning('Login attempt failed: incorrect PIN', [
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
                     'phoneNumber'   => $request->phoneNumber,
                     'attempted_pin' => $request->password,
                 ]);
@@ -173,6 +194,7 @@ class UserController extends Controller
                 ], 401);
             }
 
+<<<<<<< HEAD
             // 4️⃣ Fetch virtual account using user's id
             $va = VirtualAccount::where('user_id', $user->id)->first();
 
@@ -188,12 +210,38 @@ class UserController extends Controller
                 'message' => 'Login successful.',
                 'user' => $user,
                 'virtualAccount' => $va, // can be null if not exists
+=======
+            // ✅ Fetch Virtual Account
+            $virtualAccount = $user->virtualAccount; // assuming hasOne in User model
+
+            // Merge user + virtual account fields
+            $userData = $user->toArray();
+            if ($virtualAccount) {
+                $userData['account_number'] = $virtualAccount->account_number;
+                $userData['bank_name']      = $virtualAccount->bank_name;
+                $userData['country']        = $virtualAccount->country;
+                $userData['currency_sign']  = $virtualAccount->currency_sign;
+            }
+
+            \Log::info('User logged in successfully', [
+                'user_id'     => $user->id,
+                'phoneNumber' => $user->phoneNumber,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful.',
+                'data'    => $userData,
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::warning('Validation failed during login', [
                 'errors' => $e->errors(),
+<<<<<<< HEAD
                 'input'  => $request->all(),
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
             ]);
 
             return response()->json([
@@ -205,8 +253,11 @@ class UserController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error during login', [
                 'message' => $e->getMessage(),
+<<<<<<< HEAD
                 'trace'   => $e->getTraceAsString(),
                 'input'   => $request->all(),
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
             ]);
 
             return response()->json([
@@ -219,8 +270,11 @@ class UserController extends Controller
 
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
     // Fetch wallet details for a user
     public function getWallet($userId)
     {
@@ -473,6 +527,7 @@ class UserController extends Controller
     }
 
 
+<<<<<<< HEAD
 
 
 
@@ -653,4 +708,6 @@ class UserController extends Controller
 
 
 
+=======
+>>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 }
