@@ -6,13 +6,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../models/user-model.dart';
-<<<<<<< HEAD
 import '../models/saving-plan.dart';
 import '../models/user-savings.dart';
 import '../screens/saving-plan-details.dart';
 
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 import '../screens/custom-widgets/snackbar.dart';
 
 class RegisterService {
@@ -180,7 +177,6 @@ class RegisterService {
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 && responseData['success'] == true) {
-<<<<<<< HEAD
         final userData = responseData['user'] ?? {};
         final vaData = responseData['virtualAccount'] ?? {};
 
@@ -193,20 +189,15 @@ class RegisterService {
           'country': vaData['country'],
           'currency_sign': vaData['currency_sign'],
         };
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
         // Step 3: Store login status and updated user info
         await secureStorage.write(key: 'is_logged_in', value: 'true');
         await secureStorage.write(
           key: 'logged_in_user',
-<<<<<<< HEAD
           value: jsonEncode(enrichedUser),
         );
         print(enrichedUser);
-=======
-          value: jsonEncode(responseData['data']),
-        );
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
         showCustomSnackBar(context, responseData['message']);
 
         return true;
@@ -240,7 +231,6 @@ class RegisterService {
 
       // Step 2: Handle response
       if (response.statusCode == 200 && responseData['success'] == true) {
-<<<<<<< HEAD
         final userData = responseData['user'] ?? {};
         final vaData = responseData['virtualAccount'] ?? {};
 
@@ -253,25 +243,18 @@ class RegisterService {
           'country': vaData['country'],
           'currency_sign': vaData['currency_sign'],
         };
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
         // Store login status and user info
         await secureStorage.write(key: 'is_logged_in', value: 'true');
         await secureStorage.write(
           key: 'logged_in_user',
-<<<<<<< HEAD
           value: jsonEncode(enrichedUser),
         );
 
         showCustomSnackBar(context, responseData['message']);
         // Navigate to home/dashboard after success
         Navigator.pushReplacementNamed(context, '/home');
-=======
-          value: jsonEncode(responseData['data']),
-        );
 
-        showCustomSnackBar(context, responseData['message']);
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
         return true;
       } else {
         showCustomSnackBar(context, responseData['message'] ?? 'Login failed.');
@@ -453,7 +436,6 @@ class RegisterService {
     }
     return {"data": [], "current_page": page, "next_page_url": null};
   }
-<<<<<<< HEAD
 
   Future<bool> forgotPassword(BuildContext context, String email) async {
     try {
@@ -689,6 +671,4 @@ class RegisterService {
       return false;
     }
   }
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 }

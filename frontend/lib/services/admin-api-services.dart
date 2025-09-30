@@ -3,10 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:transact_point/models/saving-plan.dart';
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
 import '../screens/custom-widgets/snackbar.dart';
 
 class AdminService {
@@ -254,7 +252,6 @@ class AdminService {
     }
     return {'status': 'error', 'message': 'Failed to fetch wallet'};
   }
-<<<<<<< HEAD
 
   // Savings Plans CRUD system
   Future<List<Plan>> getPlans(BuildContext context) async {
@@ -379,6 +376,4 @@ class AdminService {
     }
     return false;
   }
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 }

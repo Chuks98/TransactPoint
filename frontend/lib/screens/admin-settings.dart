@@ -52,7 +52,6 @@ class _SettingsScreenState extends State<AdminSettingsScreen> {
             child: Container(
               height: 140,
               width: double.infinity,
-<<<<<<< HEAD
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -63,9 +62,7 @@ class _SettingsScreenState extends State<AdminSettingsScreen> {
                   end: Alignment.bottomRight,
                 ),
               ),
-=======
-              color: AppColors.primary,
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
               alignment: Alignment.center,
               child: FadeInDown(
                 child: Text(

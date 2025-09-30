@@ -13,11 +13,7 @@ import 'package:transact_point/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-<<<<<<< HEAD
     await tester.pumpWidget(const TransactPointApp());
-=======
-    await tester.pumpWidget(const MyApp());
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

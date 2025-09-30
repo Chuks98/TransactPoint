@@ -14,20 +14,16 @@ import 'package:transact_point/screens/cable.dart';
 import 'package:transact_point/screens/data.dart';
 import 'package:transact_point/screens/edit-account.dart';
 import 'package:transact_point/screens/electricity.dart';
-<<<<<<< HEAD
 import 'package:transact_point/screens/forgot-password.dart';
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
 import 'package:transact_point/screens/fund-account.dart';
 import 'package:transact_point/screens/insurance.dart';
 import 'package:transact_point/screens/loan.dart';
 import 'package:transact_point/screens/login-normally.dart';
 import 'package:transact_point/screens/privacy.dart';
-<<<<<<< HEAD
 import 'package:transact_point/screens/saving-plans.dart';
 import 'package:transact_point/screens/savings.dart';
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
 import 'package:transact_point/screens/transactions.dart';
 import 'package:transact_point/screens/settings.dart';
 import 'package:flutter/material.dart';
@@ -179,15 +175,13 @@ class _TransactPointAppState extends State<TransactPointApp> {
                 body: BankDetailsScreen(),
                 showBackButton: true,
               ),
-<<<<<<< HEAD
           '/savings':
               (context) => const MainLayout(
                 title: "My Savings",
                 body: SavingsScreen(),
                 showBackButton: true,
               ),
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
           '/edit-account':
               (context) => const MainLayout(
                 title: "Edit Account",
@@ -230,10 +224,7 @@ class _TransactPointAppState extends State<TransactPointApp> {
                 body: PrivacyPolicyScreen(),
                 showBackButton: true,
               ),
-<<<<<<< HEAD
           '/forgot-password': (context) => ForgotPasswordScreen(),
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 
           // 🔹 Admin routes
           '/admin-login': (context) => const AdminLoginScreen(),
