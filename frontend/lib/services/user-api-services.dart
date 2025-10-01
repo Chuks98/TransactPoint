@@ -531,7 +531,7 @@ class RegisterService {
 
   Future<List<Plan>> getPlans(BuildContext context) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/plans'));
+      final response = await http.get(Uri.parse('$baseUrl/user/plans'));
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 && responseData['success'] == true) {
@@ -539,16 +539,19 @@ class RegisterService {
         final result = plans.map((e) => Plan.fromJson(e)).toList();
 
         showCustomSnackBar(context, responseData['message'] ?? "Plans loaded");
+        print(responseData['message']);
         return result;
       } else {
         showCustomSnackBar(
           context,
           responseData['message'] ?? "Failed to load plans",
         );
+        print(responseData['message']);
         return [];
       }
     } catch (e) {
-      showCustomSnackBar(context, "Error: $e");
+      showCustomSnackBar(context, "Error fetching saving plans");
+      print("Error: $e");
       return [];
     }
   }
@@ -577,9 +580,11 @@ class RegisterService {
 
   Future<bool> createSaving(
     BuildContext context, {
-    required int userId,
+    required String userId,
     required int planId,
-    required double amount,
+    required double principal,
+    String? startDate,
+    String? endDate,
   }) async {
     try {
       final response = await http.post(
@@ -588,11 +593,14 @@ class RegisterService {
         body: jsonEncode({
           'user_id': userId,
           'plan_id': planId,
-          'amount': amount,
+          'principal': principal,
+          'start_date': startDate,
+          'end_date': endDate,
         }),
       );
 
       final responseData = jsonDecode(response.body);
+      print(responseData);
 
       if ((response.statusCode == 201 || response.statusCode == 200) &&
           responseData['success'] == true) {
@@ -616,11 +624,11 @@ class RegisterService {
 
   Future<List<UserSaving>> getUserSavings(
     BuildContext context,
-    int userId,
+    String userId,
   ) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/users/$userId/savings'),
+        Uri.parse('$baseUrl/users/$userId/get-savings'),
       );
       final responseData = jsonDecode(response.body);
 
@@ -632,16 +640,19 @@ class RegisterService {
           context,
           responseData['message'] ?? "Savings loaded",
         );
+        print("${responseData['message'] ?? "Savings loaded"}");
         return result;
       } else {
         showCustomSnackBar(
           context,
           responseData['message'] ?? "Failed to fetch savings",
         );
+        print("${responseData['message'] ?? "Failed to fetch savings"}");
         return [];
       }
     } catch (e) {
-      showCustomSnackBar(context, "Error: $e");
+      showCustomSnackBar(context, "Error fetching savings");
+      print("Error fetching savings: $e");
       return [];
     }
   }

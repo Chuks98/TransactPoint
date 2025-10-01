@@ -42,6 +42,13 @@ Route::prefix('user')->group(function () {
     Route::patch('/update-account', [UserController::class, 'updateAccount']);
     Route::get('/recent-transactions/{userId}', [UserController::class, 'getUserRecentTransactions']);
     Route::get('/transactions/{userId}', [UserController::class, 'getUserTransactions']);
+
+    // Saving Plans user routes
+    Route::get('/plans', [UserController::class, 'getPlans']);
+    Route::get('/plans/{id}', [UserController::class, 'getPlan']);
+    Route::post('/savings', [UserController::class, 'createSaving']);
+    Route::get('/users/{userId}/get-savings', [UserController::class, 'getUserSavings']);
+    Route::post('/savings/{id}/withdraw', [UserController::class, 'withdrawSaving']);
 });
 
 

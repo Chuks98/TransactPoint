@@ -273,7 +273,8 @@ class AdminService {
         );
       }
     } catch (e) {
-      showCustomSnackBar(context, 'Error fetching plans: $e');
+      showCustomSnackBar(context, 'Error fetching plans');
+      print("Error fetching plans: $e");
     }
     return [];
   }
@@ -290,6 +291,7 @@ class AdminService {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
+      print(response);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final res = jsonDecode(response.body);
@@ -300,15 +302,21 @@ class AdminService {
           );
           return true;
         }
+      } else if ((response.statusCode == 205) || (response.statusCode == 206)) {
+        final res = jsonDecode(response.body);
         showCustomSnackBar(context, res['message'] ?? 'Failed to create plan');
+        print(res);
+        return false;
       } else {
         showCustomSnackBar(
           context,
           'Failed to create plan: ${response.statusCode}',
         );
+        return false;
       }
     } catch (e) {
-      showCustomSnackBar(context, 'Error creating plan: $e');
+      showCustomSnackBar(context, "Error creating plan: $e");
+      print("Error creating plan: $e");
     }
     return false;
   }
@@ -344,7 +352,8 @@ class AdminService {
         );
       }
     } catch (e) {
-      showCustomSnackBar(context, 'Error updating plan: $e');
+      showCustomSnackBar(context, 'Error updating plan');
+      print("Error updating plan: $e");
     }
     return false;
   }
@@ -372,7 +381,8 @@ class AdminService {
         );
       }
     } catch (e) {
-      showCustomSnackBar(context, 'Error deleting plan: $e');
+      showCustomSnackBar(context, 'Error deleting plan');
+      print("Error deleting plan: $e");
     }
     return false;
   }

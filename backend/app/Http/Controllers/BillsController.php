@@ -1011,6 +1011,147 @@ class BillsController extends Controller
 
 
     // Handle Flutterwave webhook
+    // public function flutterwaveWebhook(Request $request)
+    // {
+    //     try {
+    //         $secretHash = env('FLW_SECRET_HASH');
+    //         $signature  = $request->header('Verif-Hash');
+
+    //         if (!$signature || $signature !== $secretHash) {
+    //             Log::warning("Invalid webhook signature", ['signature' => $signature]);
+    //             return response()->json(['error' => 'Invalid signature'], 401);
+    //         }
+
+    //         $payload = $request->all();
+    //         Log::info("Flutterwave Webhook Payload", $payload);
+
+    //         if (!isset($payload['event'])) {
+    //             return response()->json(['message' => 'No event found'], 200);
+    //         }
+
+    //         $event = $payload['event'];
+    //         $data  = $payload['data'];
+
+    //         if ($event === 'charge.completed') {
+    //             // CASE 1: Checkout Funding (has tx_ref)
+    //             if (isset($data['tx_ref'])) {
+    //                 $tx_ref = $data['tx_ref'];
+
+    //                 $transaction = Transaction::where('transaction_id', $tx_ref)->first();
+    //                 if (!$transaction) {
+    //                     Log::error("Transaction not found", ['tx_ref' => $tx_ref]);
+    //                     return response()->json(['error' => 'Transaction not found'], 200);
+    //                 }
+
+    //                 $user = User::find($transaction->user_id);
+    //                 if (!$user) {
+    //                     Log::error("User not found", ['id' => $transaction->user_id]);
+    //                     return response()->json(['error' => 'User not found'], 200);
+    //                 }
+
+    //                 $transaction->update([
+    //                     'status'      => $data['status'],
+    //                     'description' => $data['narration'] ?? 'Wallet Funding',
+    //                 ]);
+
+    //                 if ($data['status'] === 'successful') {
+    //                     $wallet = Wallet::firstOrCreate(
+    //                         ['user_id' => $user->id],
+    //                         [
+    //                             'balance'       => 0,
+    //                             'currency'      => $transaction->currency,
+    //                             'code'          => $transaction->code,
+    //                             'currencySign'  => $transaction->currencySign,
+    //                             'country'       => $transaction->country,
+    //                         ]
+    //                     );
+
+    //                     $wallet->increment('balance', $data['amount']);
+
+    //                     Log::info("Wallet funded successfully (Checkout)", [
+    //                         'user_id'        => $user->id,
+    //                         'amount'         => $data['amount'],
+    //                         'wallet_balance' => $wallet->balance,
+    //                         'transaction_id' => $transaction->transaction_id,
+    //                     ]);
+    //                 }
+    //             }
+
+    //             // CASE 2: Virtual Account Funding (no tx_ref, use flw_ref)
+    //             elseif (isset($data['flw_ref'])) {
+    //                 $flwRef = $data['flw_ref'];
+
+    //                 $virtualAccount = VirtualAccount::where('flw_ref', $flwRef)->first();
+    //                 if (!$virtualAccount) {
+    //                     Log::error("Virtual account not found for funding", ['flw_ref' => $flwRef]);
+    //                     return response()->json(['error' => 'Virtual account not found'], 200);
+    //                 }
+
+    //                 $user = $virtualAccount->user;
+    //                 if (!$user) {
+    //                     Log::error("User not found for virtual account", ['flw_ref' => $flwRef]);
+    //                     return response()->json(['error' => 'User not found'], 200);
+    //                 }
+
+    //                 // Check if this transaction already exists (avoid duplicate funding if webhook retries)
+    //                 $existingTx = Transaction::where('transaction_id', $data['id'])->first();
+    //                 if ($existingTx) {
+    //                     Log::warning("Duplicate transaction ignored", ['id' => $data['id']]);
+    //                     return response()->json(['message' => 'Duplicate transaction'], 200);
+    //                 }
+
+    //                 // Create a new transaction
+    //                 $transaction = Transaction::create([
+    //                     'user_id'       => $user->id,
+    //                     'type'          => 'credit',
+    //                     'amount'        => $data['amount'],
+    //                     'description'   => $data['narration'] ?? 'Virtual Account Funding',
+    //                     'status'        => $data['status'],
+    //                     'currency'      => $data['currency'],
+    //                     'transaction_id'=> $data['id'], // Flutterwave transaction id
+    //                     'code'          => $data['reference'] ?? null,
+    //                     'currencySign'  => $data['currency'] ?? null,
+    //                     'country'       => $data['country'] ?? null,
+    //                 ]);
+
+    //                 if ($data['status'] === 'successful') {
+    //                     $wallet = Wallet::firstOrCreate(
+    //                         ['user_id' => $user->id],
+    //                         [
+    //                             'balance'       => 0,
+    //                             'currency'      => $transaction->currency,
+    //                             'code'          => $transaction->code,
+    //                             'currencySign'  => $transaction->currencySign,
+    //                             'country'       => $transaction->country,
+    //                         ]
+    //                     );
+
+    //                     $wallet->increment('balance', $data['amount']);
+
+    //                     Log::info("Wallet funded successfully (Virtual Account)", [
+    //                         'user_id'        => $user->id,
+    //                         'amount'         => $data['amount'],
+    //                         'wallet_balance' => $wallet->balance,
+    //                         'transaction_id' => $transaction->transaction_id,
+    //                     ]);
+    //                 }
+    //             }
+
+    //         }
+
+    //         return response()->json(['status' => 'success'], 200);
+
+    //     } catch (\Exception $e) {
+    //         Log::error("Webhook error", [
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
+    //         return response()->json(['error' => 'Server error'], 500);
+    //     }
+    // }
+
+
+
     public function flutterwaveWebhook(Request $request)
     {
         try {
@@ -1033,110 +1174,113 @@ class BillsController extends Controller
             $data  = $payload['data'];
 
             if ($event === 'charge.completed') {
-                // CASE 1: Checkout Funding (has tx_ref)
-                if (isset($data['tx_ref'])) {
-                    $tx_ref = $data['tx_ref'];
+                \DB::transaction(function () use ($data) {
 
-                    $transaction = Transaction::where('transaction_id', $tx_ref)->first();
-                    if (!$transaction) {
-                        Log::error("Transaction not found", ['tx_ref' => $tx_ref]);
-                        return response()->json(['error' => 'Transaction not found'], 200);
-                    }
+                    // CASE 1: Checkout Funding (tx_ref exists)
+                    if (isset($data['tx_ref'])) {
+                        $tx_ref = $data['tx_ref'];
 
-                    $user = User::find($transaction->user_id);
-                    if (!$user) {
-                        Log::error("User not found", ['id' => $transaction->user_id]);
-                        return response()->json(['error' => 'User not found'], 200);
-                    }
+                        $transaction = Transaction::where('transaction_id', $tx_ref)->first();
+                        if (!$transaction) {
+                            Log::error("Transaction not found", ['tx_ref' => $tx_ref]);
+                            return;
+                        }
 
-                    $transaction->update([
-                        'status'      => $data['status'],
-                        'description' => $data['narration'] ?? 'Wallet Funding',
-                    ]);
+                        $user = User::find($transaction->user_id);
+                        if (!$user) {
+                            Log::error("User not found", ['id' => $transaction->user_id]);
+                            return;
+                        }
 
-                    if ($data['status'] === 'successful') {
-                        $wallet = Wallet::firstOrCreate(
-                            ['user_id' => $user->id],
-                            [
-                                'balance'       => 0,
-                                'currency'      => $transaction->currency,
-                                'code'          => $transaction->code,
-                                'currencySign'  => $transaction->currencySign,
-                                'country'       => $transaction->country,
-                            ]
-                        );
-
-                        $wallet->increment('balance', $data['amount']);
-
-                        Log::info("Wallet funded successfully (Checkout)", [
-                            'user_id'        => $user->id,
-                            'amount'         => $data['amount'],
-                            'wallet_balance' => $wallet->balance,
-                            'transaction_id' => $transaction->transaction_id,
+                        $transaction->update([
+                            'status'      => $data['status'],
+                            'description' => $data['narration'] ?? 'Wallet Funding',
                         ]);
-                    }
-                }
 
-                // CASE 2: Virtual Account Funding (no tx_ref, use flw_ref)
-                elseif (isset($data['flw_ref'])) {
-                    $flwRef = $data['flw_ref'];
+                        if ($data['status'] === 'successful') {
+                            $wallet = Wallet::firstOrCreate(
+                                ['user_id' => $user->id],
+                                [
+                                    'balance'       => 0,
+                                    'currency'      => $transaction->currency,
+                                    'code'          => $transaction->code,
+                                    'currencySign'  => $transaction->currencySign,
+                                    'country'       => $transaction->country,
+                                ]
+                            );
 
-                    $virtualAccount = VirtualAccount::where('flw_ref', $flwRef)->first();
-                    if (!$virtualAccount) {
-                        Log::error("Virtual account not found for funding", ['flw_ref' => $flwRef]);
-                        return response()->json(['error' => 'Virtual account not found'], 200);
-                    }
+                            $wallet->increment('balance', $data['amount']);
 
-                    $user = $virtualAccount->user;
-                    if (!$user) {
-                        Log::error("User not found for virtual account", ['flw_ref' => $flwRef]);
-                        return response()->json(['error' => 'User not found'], 200);
-                    }
-
-                    // Check if this transaction already exists (avoid duplicate funding if webhook retries)
-                    $existingTx = Transaction::where('transaction_id', $data['id'])->first();
-                    if ($existingTx) {
-                        Log::warning("Duplicate transaction ignored", ['id' => $data['id']]);
-                        return response()->json(['message' => 'Duplicate transaction'], 200);
+                            Log::info("Wallet funded successfully (Checkout)", [
+                                'user_id'        => $user->id,
+                                'amount'         => $data['amount'],
+                                'wallet_balance' => $wallet->balance,
+                                'transaction_id' => $transaction->transaction_id,
+                            ]);
+                        }
                     }
 
-                    // Create a new transaction
-                    $transaction = Transaction::create([
-                        'user_id'       => $user->id,
-                        'type'          => 'credit',
-                        'amount'        => $data['amount'],
-                        'description'   => $data['narration'] ?? 'Virtual Account Funding',
-                        'status'        => $data['status'],
-                        'currency'      => $data['currency'],
-                        'transaction_id'=> $data['id'], // Flutterwave transaction id
-                        'code'          => $data['reference'] ?? null,
-                        'currencySign'  => $data['currency'] ?? null,
-                        'country'       => $data['country'] ?? null,
-                    ]);
+                    // CASE 2: Virtual Account Funding (use flw_ref)
+                    elseif (isset($data['flw_ref'])) {
+                        $flwRef = $data['flw_ref'];
 
-                    if ($data['status'] === 'successful') {
-                        $wallet = Wallet::firstOrCreate(
-                            ['user_id' => $user->id],
-                            [
-                                'balance'       => 0,
-                                'currency'      => $transaction->currency,
-                                'code'          => $transaction->code,
-                                'currencySign'  => $transaction->currencySign,
-                                'country'       => $transaction->country,
-                            ]
-                        );
+                        $virtualAccount = VirtualAccount::where('flw_ref', $flwRef)->first();
+                        if (!$virtualAccount) {
+                            Log::error("Virtual account not found", ['flw_ref' => $flwRef]);
+                            return;
+                        }
 
-                        $wallet->increment('balance', $data['amount']);
+                        $user = $virtualAccount->user;
+                        if (!$user) {
+                            Log::error("User not found for virtual account", ['flw_ref' => $flwRef]);
+                            return;
+                        }
 
-                        Log::info("Wallet funded successfully (Virtual Account)", [
-                            'user_id'        => $user->id,
-                            'amount'         => $data['amount'],
-                            'wallet_balance' => $wallet->balance,
-                            'transaction_id' => $transaction->transaction_id,
+                        // Avoid duplicate transaction
+                        $existingTx = Transaction::where('transaction_id', $data['id'])->first();
+                        if ($existingTx) {
+                            Log::warning("Duplicate transaction ignored", ['id' => $data['id']]);
+                            return;
+                        }
+
+                        // Create new transaction
+                        $transaction = Transaction::create([
+                            'user_id'       => $user->id,
+                            'type'          => 'credit',
+                            'amount'        => $data['amount'],
+                            'description'   => $data['narration'] ?? 'Virtual Account Funding',
+                            'status'        => $data['status'],
+                            'currency'      => $data['currency'],
+                            'transaction_id'=> $data['id'],
+                            'code'          => $data['reference'] ?? null,
+                            'currencySign'  => $data['currency'] ?? null,
+                            'country'       => $data['country'] ?? null,
                         ]);
-                    }
-                }
 
+                        if ($data['status'] === 'successful') {
+                            $wallet = Wallet::firstOrCreate(
+                                ['user_id' => $user->id],
+                                [
+                                    'balance'       => 0,
+                                    'currency'      => $transaction->currency,
+                                    'code'          => $transaction->code,
+                                    'currencySign'  => $transaction->currencySign,
+                                    'country'       => $transaction->country,
+                                ]
+                            );
+
+                            $wallet->increment('balance', $data['amount']);
+
+                            Log::info("Wallet funded successfully (Virtual Account)", [
+                                'user_id'        => $user->id,
+                                'amount'         => $data['amount'],
+                                'wallet_balance' => $wallet->balance,
+                                'transaction_id' => $transaction->transaction_id,
+                            ]);
+                        }
+                    }
+
+                }); // End transaction
             }
 
             return response()->json(['status' => 'success'], 200);
@@ -1149,6 +1293,7 @@ class BillsController extends Controller
             return response()->json(['error' => 'Server error'], 500);
         }
     }
+
 
 
 

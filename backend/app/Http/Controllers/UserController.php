@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-<<<<<<< HEAD
 use App\Mail\ForgotPasswordMail;
 use Illuminate\Support\Facades\Mail;
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 use App\Services\FlutterwaveService;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Transaction;
 use App\Models\VirtualAccount;
+use App\Models\SavingPlans;
+use App\Models\UserSaving;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -26,6 +25,115 @@ class UserController extends Controller
     }
 
 
+    // public function register(Request $request)
+    // {
+    //     try {
+    //         // ✅ Validate base fields
+    //         $request->validate([
+    //             'firstName'   => 'required|string|max:255',
+    //             'lastName'    => 'required|string|max:255',
+    //             'email'       => 'required|string|email|max:255|unique:users,email',
+    //             'phoneNumber' => 'required|string|max:20|unique:users,phoneNumber',
+    //             'password'    => 'nullable|string|min:4|max:6', // optional PIN
+    //             'bvn'         => 'required|string|min:11|max:11', // 👈 Ensure BVN is valid
+    //         ]);
+
+    //         // ✅ Wrap in DB transaction
+    //         return \DB::transaction(function () use ($request) {
+    //             // 👤 Create new user
+    //             $newUser = User::create([
+    //                 'firstName'   => $request->firstName,
+    //                 'lastName'    => $request->lastName,
+    //                 'email'       => $request->email,
+    //                 'phoneNumber' => $request->phoneNumber,
+    //                 'password'    => $request->filled('password')
+    //                                     ? \Hash::make($request->password)
+    //                                     : null,
+    //             ]);
+
+    //             // Generate va_ref
+    //             $vaRef = 'VA_USER_' . $newUser->id . '_' . time();
+
+    //             // 🌐 Call Flutterwave
+    //             $flwData = $this->flutterwaveService->createStaticVirtualAccount([
+    //                 'email'       => $newUser->email,
+    //                 'va_ref'      => $vaRef,
+    //                 'firstname'   => $newUser->firstName,
+    //                 'lastname'    => $newUser->lastName,
+    //                 'phonenumber' => $newUser->phoneNumber,
+    //                 'narration'   => "Creating virtual account {$newUser->id}",
+    //                 'bvn'         => $request->bvn,
+    //             ]);
+
+    //             if (empty($flwData['account_number'])) {
+    //                 throw new \Exception('Virtual account creation failed.');
+    //             }
+
+    //             // Save VA details
+    //             $va = VirtualAccount::create([
+    //                 'user_id'        => $newUser->id,
+    //                 'account_number' => $flwData['account_number'],
+    //                 'account_name'   => $flwData['account_name'] ?? ($newUser->firstName.' '.$newUser->lastName),
+    //                 'bank_name'      => $flwData['bank_name'] ?? null,
+    //                 'bank_code'      => $flwData['bank_code'] ?? null,
+    //                 'currency'       => $flwData['currency'] ?? 'NGN',
+    //                 'currency_sign'  => $flwData['currency_sign'] ?? '₦',
+    //                 'country'        => $flwData['country'] ?? 'NG',
+
+    //                 'reference'      => $flwData['reference'] ?? null,
+    //                 'order_ref'      => $flwData['order_ref'] ?? null,
+    //                 'status'         => $flwData['status'] ?? null,
+
+    //                 // 👇 Extra fields
+    //                 'va_ref'         => $flwData['va_ref'] ?? ($flwData['meta']['va_ref'] ?? null),
+    //                 'flw_ref'        => $flwData['flw_ref'] ?? ($flwData['meta']['flw_ref'] ?? null),
+    //                 'account_status' => $flwData['account_status'] ?? ($flwData['meta']['account_status'] ?? null),
+    //                 'frequency'      => $flwData['frequency'] ?? ($flwData['meta']['frequency'] ?? null),
+    //                 'expiry_date'    => $flwData['expiry_date'] ?? ($flwData['meta']['expiry_date'] ?? null),
+    //                 'note'           => $flwData['note'] ?? ($flwData['meta']['note'] ?? null),
+    //                 'amount'         => $flwData['amount'] ?? ($flwData['meta']['amount'] ?? 0.00),
+
+    //                 // keep full response in meta for reference
+    //                 'meta'           => $flwData,
+    //             ]);
+
+    //             \Log::info("Registration Successful!", ['user'    => $newUser, 'virtualAccount' => $flwData,]);
+
+
+    //             return response()->json([
+    //                 'success' => true,
+    //                 'message' => 'User registered & virtual account created successfully.',
+    //                 'user'    => $newUser,
+    //                 'virtualAccount' => $va,
+    //             ], 201);
+    //         });
+
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+    //         \Log::warning('Validation failed during registration', [
+    //             'errors' => $e->errors(),
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $e->getMessage(),
+    //             'errors'  => $e->errors(),
+    //         ], 422);
+
+    //     } catch (\Exception $e) {
+    //         \Log::error('Error during registration', [
+    //             'message' => $e->getMessage(),
+    //             'trace'   => $e->getTraceAsString(),
+    //         ]);
+
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Something went wrong. Please try again.',
+    //         ], 500);
+    //     }
+    // }
+
+
     public function register(Request $request)
     {
         try {
@@ -36,26 +144,27 @@ class UserController extends Controller
                 'email'       => 'required|string|email|max:255|unique:users,email',
                 'phoneNumber' => 'required|string|max:20|unique:users,phoneNumber',
                 'password'    => 'nullable|string|min:4|max:6', // optional PIN
-                'bvn'         => 'required|string|min:11|max:11', // 👈 Ensure BVN is valid
+                'bvn'         => 'required|string|min:11|max:11', // Ensure BVN is valid
             ]);
 
-            // ✅ Wrap in DB transaction
+            // ✅ Wrap the registration and VA creation in a DB transaction
             return \DB::transaction(function () use ($request) {
+
                 // 👤 Create new user
                 $newUser = User::create([
                     'firstName'   => $request->firstName,
                     'lastName'    => $request->lastName,
                     'email'       => $request->email,
                     'phoneNumber' => $request->phoneNumber,
-                    'password'    => $request->filled('password')
-                                        ? \Hash::make($request->password)
+                    'password'    => $request->filled('password') 
+                                        ? \Hash::make($request->password) 
                                         : null,
                 ]);
 
-                // Generate va_ref
+                // Generate a unique VA reference
                 $vaRef = 'VA_USER_' . $newUser->id . '_' . time();
 
-                // 🌐 Call Flutterwave
+                // 🌐 Call Flutterwave to create a Virtual Account
                 $flwData = $this->flutterwaveService->createStaticVirtualAccount([
                     'email'       => $newUser->email,
                     'va_ref'      => $vaRef,
@@ -66,15 +175,16 @@ class UserController extends Controller
                     'bvn'         => $request->bvn,
                 ]);
 
+                // ❌ If VA creation fails, throw exception to rollback
                 if (empty($flwData['account_number'])) {
                     throw new \Exception('Virtual account creation failed.');
                 }
 
-                // Save VA details
+                // 💾 Save VA details in the database
                 $va = VirtualAccount::create([
                     'user_id'        => $newUser->id,
                     'account_number' => $flwData['account_number'],
-                    'account_name'   => $flwData['account_name'] ?? ($newUser->firstName.' '.$newUser->lastName),
+                    'account_name'   => $flwData['account_name'] ?? ($newUser->firstName . ' ' . $newUser->lastName),
                     'bank_name'      => $flwData['bank_name'] ?? null,
                     'bank_code'      => $flwData['bank_code'] ?? null,
                     'currency'       => $flwData['currency'] ?? 'NGN',
@@ -85,7 +195,7 @@ class UserController extends Controller
                     'order_ref'      => $flwData['order_ref'] ?? null,
                     'status'         => $flwData['status'] ?? null,
 
-                    // 👇 Extra fields
+                    // Extra fields
                     'va_ref'         => $flwData['va_ref'] ?? ($flwData['meta']['va_ref'] ?? null),
                     'flw_ref'        => $flwData['flw_ref'] ?? ($flwData['meta']['flw_ref'] ?? null),
                     'account_status' => $flwData['account_status'] ?? ($flwData['meta']['account_status'] ?? null),
@@ -98,18 +208,23 @@ class UserController extends Controller
                     'meta'           => $flwData,
                 ]);
 
-                \Log::info("Registration Successful!", ['user'    => $newUser, 'virtualAccount' => $flwData,]);
+                // ℹ️ Log success
+                \Log::info("Registration Successful!", [
+                    'user'           => $newUser,
+                    'virtualAccount' => $flwData,
+                ]);
 
-
+                // ✅ Return success response
                 return response()->json([
-                    'success' => true,
-                    'message' => 'User registered & virtual account created successfully.',
-                    'user'    => $newUser,
+                    'success'        => true,
+                    'message'        => 'User registered & virtual account created successfully.',
+                    'user'           => $newUser,
                     'virtualAccount' => $va,
                 ], 201);
             });
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // ⚠️ Log validation warnings
             \Log::warning('Validation failed during registration', [
                 'errors' => $e->errors(),
             ]);
@@ -121,11 +236,11 @@ class UserController extends Controller
             ], 422);
 
         } catch (\Exception $e) {
+            // ❌ Log errors
             \Log::error('Error during registration', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
             ]);
-
 
             return response()->json([
                 'success' => false,
@@ -139,33 +254,24 @@ class UserController extends Controller
 
 
 
+
     // User login with phone number and PIN
     public function login(Request $request)
     {
         try {
-<<<<<<< HEAD
             // 1️⃣ Validate incoming request
-=======
-            // Validate incoming request
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
             $request->validate([
                 'phoneNumber' => 'required|string|max:20',
                 'password'    => 'required|string|min:4|max:6', // PIN length
             ]);
 
-<<<<<<< HEAD
             // 2️⃣ Fetch user by phone number
             $user = User::where('phoneNumber', $request->phoneNumber)->first();
 
             if (!$user) {
                 \Log::warning('Login failed: user not found', [
-=======
-            // Find user
-            $user = User::where('phoneNumber', $request->phoneNumber)->first();
 
-            if (!$user) {
-                \Log::warning('Login attempt failed: user not found', [
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
                     'phoneNumber' => $request->phoneNumber,
                 ]);
 
@@ -175,15 +281,10 @@ class UserController extends Controller
                 ], 404);
             }
 
-<<<<<<< HEAD
             // 3️⃣ Verify password
             if (!$user->password || !\Hash::check($request->password, $user->password)) {
                 \Log::warning('Login failed: incorrect PIN', [
-=======
-            // Verify password
-            if (!$user->password || !Hash::check($request->password, $user->password)) {
-                \Log::warning('Login attempt failed: incorrect PIN', [
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
                     'phoneNumber'   => $request->phoneNumber,
                     'attempted_pin' => $request->password,
                 ]);
@@ -194,7 +295,6 @@ class UserController extends Controller
                 ], 401);
             }
 
-<<<<<<< HEAD
             // 4️⃣ Fetch virtual account using user's id
             $va = VirtualAccount::where('user_id', $user->id)->first();
 
@@ -210,38 +310,14 @@ class UserController extends Controller
                 'message' => 'Login successful.',
                 'user' => $user,
                 'virtualAccount' => $va, // can be null if not exists
-=======
-            // ✅ Fetch Virtual Account
-            $virtualAccount = $user->virtualAccount; // assuming hasOne in User model
 
-            // Merge user + virtual account fields
-            $userData = $user->toArray();
-            if ($virtualAccount) {
-                $userData['account_number'] = $virtualAccount->account_number;
-                $userData['bank_name']      = $virtualAccount->bank_name;
-                $userData['country']        = $virtualAccount->country;
-                $userData['currency_sign']  = $virtualAccount->currency_sign;
-            }
-
-            \Log::info('User logged in successfully', [
-                'user_id'     => $user->id,
-                'phoneNumber' => $user->phoneNumber,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Login successful.',
-                'data'    => $userData,
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
             ], 200);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::warning('Validation failed during login', [
                 'errors' => $e->errors(),
-<<<<<<< HEAD
                 'input'  => $request->all(),
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
             ]);
 
             return response()->json([
@@ -253,11 +329,9 @@ class UserController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error during login', [
                 'message' => $e->getMessage(),
-<<<<<<< HEAD
                 'trace'   => $e->getTraceAsString(),
                 'input'   => $request->all(),
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
             ]);
 
             return response()->json([
@@ -270,11 +344,9 @@ class UserController extends Controller
 
 
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+
     // Fetch wallet details for a user
     public function getWallet($userId)
     {
@@ -527,7 +599,6 @@ class UserController extends Controller
     }
 
 
-<<<<<<< HEAD
 
 
 
@@ -708,6 +779,211 @@ class UserController extends Controller
 
 
 
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
+    // List all plans
+    public function getPlans()
+    {
+        try {
+            $plans = SavingPlans::all();
+            Log::info("Fetched saving plans: " . $plans->toJson());
+            return response()->json([
+                'success' => true,
+                'message' => 'Plans loaded',
+                'plans'   => $plans
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error fetching plans", ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+        }
+    }
+
+    // Get one plan
+    public function getPlan($id)
+    {
+        try {
+            $plan = SavingPlans::find($id);
+            if (!$plan) {
+                return response()->json(['success' => false, 'message' => 'Plan not found'], 404);
+            }
+            return response()->json([
+                'success' => true,
+                'message' => 'Plan loaded',
+                'plan'    => $plan
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error fetching plan", ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+        }
+    }
+
+
+
+
+    // Create a new saving
+    public function createSaving(Request $request)
+    {
+        $request->validate([
+            'user_id'  => 'required|exists:users,id',
+            'plan_id'  => 'required|exists:saving_plans,id',
+            'principal'=> 'required|numeric|min:1',
+        ]);
+
+        Log::info('Attempting to create saving', [
+            'user_id' => $request->user_id,
+            'plan_id' => $request->plan_id,
+            'principal' => $request->principal
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $user = User::find($request->user_id);
+            $plan = SavingPlans::find($request->plan_id);
+
+            if (!$user || !$plan) {
+                Log::warning('User or plan not found', [
+                    'user_id' => $request->user_id,
+                    'plan_id' => $request->plan_id
+                ]);
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Invalid user or plan'], 404);
+            }
+
+            // Deduct from wallet first
+            $wallet = Wallet::firstOrCreate(
+                ['user_id' => $user->id],
+                ['balance' => 0, 'currency' => 'NGN']
+            );
+
+            if ($wallet->balance < $request->principal) {
+                Log::warning('Insufficient wallet balance', [
+                    'user_id' => $user->id,
+                    'wallet_balance' => $wallet->balance,
+                    'requested' => $request->principal
+                ]);
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Insufficient wallet balance'], 400);
+            }
+
+            $wallet->decrement('balance', $request->principal);
+            Log::info('Wallet debited', [
+                'user_id' => $user->id,
+                'amount' => $request->principal,
+                'new_balance' => $wallet->balance
+            ]);
+
+            // Create saving record
+            $saving = UserSaving::create([
+                'user_id'         => $user->id,
+                'plan_id'         => $plan->id,
+                'principal'       => $request->principal,
+                'maturity_amount' => $request->principal, // calculate later if needed
+                'start_date'      => $request->start_date ?? now(),
+                'end_date'        => $request->end_date ?? now()->addMonths($plan->duration ?? 1),
+                'withdrawn'       => false,
+            ]);
+            Log::info('Saving record created', ['saving_id' => $saving->id]);
+
+            // Log transaction
+            $transaction = Transaction::create([
+                'user_id'       => $user->id,
+                'type'          => 'debit',
+                'amount'        => $request->principal,
+                'description'   => 'Saving for plan: ' . $plan->name,
+                'status'        => 'successful',
+                'currency'      => 'NGN',
+                'transaction_id'=> uniqid('save_'),
+            ]);
+            Log::info('Transaction logged', ['transaction_id' => $transaction->transaction_id]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Saving created successfully',
+                'saving'  => $saving,
+                'wallet_balance' => $wallet->balance
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error creating saving", [
+                'error' => $e->getMessage(),
+                'user_id' => $request->user_id,
+                'plan_id' => $request->plan_id
+            ]);
+            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+        }
+    }
+
+
+
+    // Fetch user’s savings
+    public function getUserSavings($userId)
+    {
+        Log::info("ssafjfbfdskfjndsfjdsa");
+        try {
+            $user = User::find($userId);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            }
+
+            $savings = UserSaving::where('user_id', $userId)->with('plan')->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Savings loaded',
+                'savings' => $savings
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error fetching user savings", ['userId' => $userId, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+        }
+    }
+
+    // Withdraw from a saving
+    public function withdrawSaving($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $saving = UserSaving::find($id);
+            if (!$saving || $saving->withdrawn === true) {
+                return response()->json(['success' => false, 'message' => 'Saving not available'], 404);
+            }
+
+            $user = $saving->user;
+            $wallet = Wallet::firstOrCreate(['user_id' => $user->id], ['balance' => 0, 'currency' => 'NGN']);
+
+            // Mark saving as withdrawn
+            $saving->update(['withdrawn' => true]);
+
+            // Credit wallet
+            $wallet->increment('balance', $saving->principal);
+
+            // Log transaction
+            Transaction::create([
+                'user_id'       => $user->id,
+                'type'          => 'credit',
+                'amount'        => $saving->principal,
+                'description'   => 'Saving withdrawal',
+                'status'        => 'successful',
+                'currency'      => 'NGN',
+                'transaction_id'=> uniqid('withdraw_'),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Withdrawal successful',
+                'wallet_balance' => $wallet->balance
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Withdraw error", ['savingId' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Server error'], 500);
+        }
+    }
+
 }

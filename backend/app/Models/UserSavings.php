@@ -25,11 +25,13 @@ class UserSaving extends Model
         'withdrawn' => 'boolean',
     ];
 
-    public function savingPlans()
+    // Each saving belongs to one plan
+    public function plan()
     {
-        return $this->belongsTo(SavingPlans::class);
+        return $this->belongsTo(SavingPlans::class, 'plan_id');
     }
 
+    // Each saving belongs to one user
     public function user()
     {
         return $this->belongsTo(User::class);

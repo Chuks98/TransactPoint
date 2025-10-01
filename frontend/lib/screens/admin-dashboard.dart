@@ -107,6 +107,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         "subtitle": "View all transactions in the system",
         "route": "/admin-transactions",
       },
+      {
+        "icon": Icons.savings, // ✅ best icon for savings
+        "title": "Saving Plans",
+        "subtitle": "Create and manage saving plans",
+        "route": "/admin-saving-plans",
+      },
     ];
 
     return Scaffold(

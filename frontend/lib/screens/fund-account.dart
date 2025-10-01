@@ -57,11 +57,12 @@ class _AccountFundingScreenState extends State<AccountFundingScreen> {
       } else {
         showCustomSnackBar(
           context,
-          response['message'] ?? "Failed to fetch wallet",
+          response['message'] ?? "Failed to fetch account",
         );
       }
     } catch (e) {
-      showCustomSnackBar(context, "Wallet fetch error: $e");
+      showCustomSnackBar(context, "Account fetch error");
+      print(e);
     }
   }
 
@@ -79,7 +80,7 @@ class _AccountFundingScreenState extends State<AccountFundingScreen> {
     }
 
     if (userWallet == null) {
-      showCustomSnackBar(context, "Wallet not loaded. Please refresh.");
+      showCustomSnackBar(context, "Account not loaded. Please refresh.");
       return;
     }
 
@@ -147,7 +148,7 @@ class _AccountFundingScreenState extends State<AccountFundingScreen> {
               const SizedBox(height: 20),
               if (userWallet != null) ...[
                 Text(
-                  "Wallet Balance: $walletCurrencySign${userWallet!['balance']}",
+                  "Account Balance: $walletCurrencySign${userWallet!['balance']}",
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

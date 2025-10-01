@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:transact_point/screens/admin-savings-plans-form.dart';
 import 'package:transact_point/services/admin-api-services.dart';
 import '../models/saving-plan.dart';
+import '../theme.dart';
+import './custom-widgets/curved-design.dart';
 
 class AdminPlansScreen extends StatefulWidget {
   const AdminPlansScreen({super.key});
@@ -84,59 +86,129 @@ class _AdminPlansScreenState extends State<AdminPlansScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Manage Savings Plans")),
-      body: FutureBuilder<List<Plan>>(
-        future: _plansFuture,
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(child: Text("Error: ${snap.error}"));
-          }
-          final plans = snap.data ?? [];
-          if (plans.isEmpty) {
-            return const Center(child: Text("No plans available"));
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: plans.length,
-            itemBuilder: (_, i) {
-              final p = plans[i];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  title: Text(p.name),
-                  subtitle: Text(
-                    p.withInterest
-                        ? "${p.interestRate}% ${p.interestType} • ${p.durationMonths > 0 ? '${p.durationMonths} months' : 'Flexible'}"
-                        : "No interest • ${p.durationMonths > 0 ? '${p.durationMonths} months' : 'Flexible'}",
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (val) {
-                      if (val == "edit") {
-                        _openPlanForm(plan: p);
-                      } else if (val == "delete") {
-                        _deletePlan(p.id);
-                      }
-                    },
-                    itemBuilder:
-                        (ctx) => [
-                          const PopupMenuItem(
-                            value: "edit",
-                            child: Text("Edit"),
-                          ),
-                          const PopupMenuItem(
-                            value: "delete",
-                            child: Text("Delete"),
-                          ),
-                        ],
-                  ),
+      body: Column(
+        children: [
+          // Curved header
+          ClipPath(
+            clipper: UCurveClipper(),
+            child: Container(
+              height: 140,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primary.withOpacity(0.12),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              );
-            },
-          );
-        },
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                "Manage Saving Plans",
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+
+          // Content (plans list)
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                _refresh();
+                await _plansFuture;
+              },
+              child: FutureBuilder<List<Plan>>(
+                future: _plansFuture,
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    // Wrap loader in scrollable so refresh works
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(
+                          height: 300,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      ],
+                    );
+                  }
+                  if (snap.hasError) {
+                    // Wrap error in scrollable so refresh works
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: 300,
+                          child: Center(child: Text("Error: ${snap.error}")),
+                        ),
+                      ],
+                    );
+                  }
+
+                  final plans = snap.data ?? [];
+                  if (plans.isEmpty) {
+                    // Wrap "no data" in scrollable so refresh works
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(
+                          height: 300,
+                          child: Center(child: Text("No plans available")),
+                        ),
+                      ],
+                    );
+                  }
+
+                  // Normal list
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: plans.length,
+                    itemBuilder: (_, i) {
+                      final p = plans[i];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          title: Text(p.name),
+                          subtitle: Text(
+                            p.withInterest
+                                ? "${p.interestRate}% ${p.interestType} • ${p.durationMonths > 0 ? '${p.durationMonths} months' : 'Flexible'}"
+                                : "No interest • ${p.durationMonths > 0 ? '${p.durationMonths} months' : 'Flexible'}",
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (val) {
+                              if (val == "edit") {
+                                _openPlanForm(plan: p);
+                              } else if (val == "delete") {
+                                _deletePlan(p.id);
+                              }
+                            },
+                            itemBuilder:
+                                (ctx) => const [
+                                  PopupMenuItem(
+                                    value: "edit",
+                                    child: Text("Edit"),
+                                  ),
+                                  PopupMenuItem(
+                                    value: "delete",
+                                    child: Text("Delete"),
+                                  ),
+                                ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openPlanForm(),

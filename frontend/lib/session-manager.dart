@@ -32,6 +32,7 @@ class SessionManager with WidgetsBindingObserver {
 
   Future<void> _logoutUser() async {
     await _storage.delete(key: 'is_logged_in');
+    await _storage.delete(key: 'logged_in_admin');
     debugPrint("⏰ Session expired: is_logged_in deleted");
   }
 

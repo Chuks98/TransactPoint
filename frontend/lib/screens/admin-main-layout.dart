@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:transact_point/screens/custom-widgets/confirm-dialog.dart';
 import 'package:transact_point/services/admin-api-services.dart';
+import 'package:transact_point/theme.dart';
 
 /// Admin Main Layout
 class AdminMainLayout extends StatefulWidget {
@@ -109,6 +110,11 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
             title: const Text("Transactions"),
             onTap: () => Navigator.pushNamed(context, '/admin-transactions'),
           ),
+          ListTile(
+            leading: const Icon(Icons.savings),
+            title: const Text("Savings"),
+            onTap: () => Navigator.pushNamed(context, '/admin-saving-plans'),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),
@@ -121,10 +127,11 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
   }
 
   Widget _buildBottomNav() {
+    final colorScheme = Theme.of(context).colorScheme;
     return BottomNavigationBar(
       currentIndex: _currentIndex,
       selectedItemColor: Theme.of(context).colorScheme.primary,
-      unselectedItemColor: Theme.of(context).colorScheme.secondary,
+      unselectedItemColor: colorScheme.onSecondary,
       type: BottomNavigationBarType.fixed,
       onTap: (index) {
         if (_currentIndex == index) return;
@@ -133,7 +140,7 @@ class _AdminMainLayoutState extends State<AdminMainLayout> {
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.dashboard),
-          label: "Dashboard",
+          label: " Dashboard",
         ),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: "Users"),
         BottomNavigationBarItem(

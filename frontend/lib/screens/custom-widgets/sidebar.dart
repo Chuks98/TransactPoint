@@ -35,6 +35,13 @@ class CustomSidebar extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: Icon(Icons.savings, color: theme.colorScheme.primary),
+            title: Text("Savings", style: theme.textTheme.bodyMedium),
+            onTap: () {
+              Navigator.pushNamed(context, '/savings');
+            },
+          ),
+          ListTile(
             leading: Icon(
               Icons.account_circle,
               color: theme.colorScheme.primary,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:transact_point/services/admin-api-services.dart';
 import '../models/saving-plan.dart';
-import '../services/user-api-services.dart';
 
 class AdminSavingsPlanForm extends StatefulWidget {
   final Plan? existing;
@@ -24,7 +23,7 @@ class _AdminSavingsPlanFormState extends State<AdminSavingsPlanForm> {
   late TextEditingController _rateCtrl;
 
   String _interestType = "simple";
-  bool _withInterest = true;
+  bool _withInterest = false;
   bool _isLocked = false;
   bool _loading = false;
 
@@ -80,27 +79,52 @@ class _AdminSavingsPlanFormState extends State<AdminSavingsPlanForm> {
       child: Form(
         key: _formKey,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ---------- Basic Info ----------
+            SizedBox(height: 30),
+            const Text(
+              "Basic Information",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
             TextFormField(
               controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: "Plan Name"),
+              decoration: const InputDecoration(
+                labelText: "Plan Name",
+                prefixIcon: Icon(Icons.title),
+              ),
               validator:
                   (v) => v == null || v.isEmpty ? "Enter plan name" : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _descCtrl,
-              decoration: const InputDecoration(labelText: "Description"),
+              decoration: const InputDecoration(
+                labelText: "Description",
+                prefixIcon: Icon(Icons.description),
+              ),
               maxLines: 2,
             ),
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 20),
+
+            // ---------- Amounts ----------
+            const Text(
+              "Amounts",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
                     controller: _minCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Min Amount"),
+                    decoration: const InputDecoration(
+                      labelText: "Min Amount",
+                      prefixIcon: Icon(Icons.arrow_downward),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -108,7 +132,10 @@ class _AdminSavingsPlanFormState extends State<AdminSavingsPlanForm> {
                   child: TextFormField(
                     controller: _maxCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: "Max Amount"),
+                    decoration: const InputDecoration(
+                      labelText: "Max Amount",
+                      prefixIcon: Icon(Icons.arrow_upward),
+                    ),
                   ),
                 ),
               ],
@@ -119,9 +146,18 @@ class _AdminSavingsPlanFormState extends State<AdminSavingsPlanForm> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Duration (months, 0 = flexible)",
+                prefixIcon: Icon(Icons.calendar_month),
               ),
             ),
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 20),
+
+            // ---------- Interest ----------
+            const Text(
+              "Interest Options",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
             SwitchListTile(
               title: const Text("With Interest"),
               value: _withInterest,
@@ -131,12 +167,18 @@ class _AdminSavingsPlanFormState extends State<AdminSavingsPlanForm> {
               TextFormField(
                 controller: _rateCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: "Interest Rate %"),
+                decoration: const InputDecoration(
+                  labelText: "Interest Rate (%)",
+                  prefixIcon: Icon(Icons.percent),
+                ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: _interestType,
-                decoration: const InputDecoration(labelText: "Interest Type"),
+                decoration: const InputDecoration(
+                  labelText: "Interest Type",
+                  prefixIcon: Icon(Icons.timeline),
+                ),
                 items: const [
                   DropdownMenuItem(value: "simple", child: Text("Simple")),
                   DropdownMenuItem(value: "compound", child: Text("Compound")),
@@ -144,21 +186,48 @@ class _AdminSavingsPlanFormState extends State<AdminSavingsPlanForm> {
                 onChanged: (v) => setState(() => _interestType = v!),
               ),
             ],
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 20),
+
+            // ---------- Restrictions ----------
+            const Text(
+              "Restrictions",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
             SwitchListTile(
-              title: const Text("Locked Plan (no early withdraw)"),
+              title: const Text("Locked Plan (no early withdrawal)"),
               value: _isLocked,
               onChanged: (v) => setState(() => _isLocked = v),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 30),
+
+            // ---------- Save Button ----------
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _save,
-                child:
+              child: ElevatedButton.icon(
+                icon:
                     _loading
-                        ? const CircularProgressIndicator()
-                        : Text(widget.existing == null ? "Create" : "Update"),
+                        ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Icon(Icons.save),
+                label: Text(
+                  widget.existing == null ? "Create Plan" : "Update Plan",
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _loading ? null : _save,
               ),
             ),
             const SizedBox(height: 20),

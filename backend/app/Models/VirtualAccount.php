@@ -30,10 +30,6 @@ class VirtualAccount extends Model
         'note',
         'amount',
         'va_ref',
-<<<<<<< HEAD
-=======
-
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
         'meta',
     ];
 

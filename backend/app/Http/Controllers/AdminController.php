@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\Transaction;
+use App\Models\SavingPlans;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -265,7 +266,6 @@ class AdminController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Failed to fetch wallet'], 500);
         }
     }
-<<<<<<< HEAD
 
 
 
@@ -276,7 +276,7 @@ class AdminController extends Controller
     public function getPlans()
     {
         try {
-            $plans = Plan::all();
+            $plans = SavingPlans::all();
 
             \Log::info("Plans fetched successfully", ['plans' => $plans]);
 
@@ -296,29 +296,64 @@ class AdminController extends Controller
     public function createPlan(Request $request)
     {
         try {
+
+            // Check max number of plans (not more than 2)
+            $plansCount = SavingPlans::count();
+            if ($plansCount >= 10) {
+                Log::warning("Plan creation blocked: max plan limit reached");
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You cannot create more than 10 saving plans.'
+                ], 205);
+            }
+
+            // Validate request (only name and description required)
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'min_amount' => 'required|numeric|min:0',
+                'description' => 'required|string',
+                'min_amount' => 'nullable|numeric|min:0',
                 'max_amount' => 'nullable|numeric|min:0',
-                'duration_months' => 'required|integer|min:0',
+                'duration_months' => 'nullable|integer|min:0',
                 'interest_rate' => 'nullable|numeric|min:0',
                 'interest_type' => 'nullable|string|in:simple,compound',
-                'with_interest' => 'boolean',
-                'is_locked' => 'boolean',
+                'with_interest' => 'nullable|boolean',
+                'is_locked' => 'nullable|boolean',
             ]);
 
-            $plan = Plan::create($validated);
+            Log::info("Validated plan data", ['validated' => $validated]);
 
-            \Log::info("Plan created successfully", ['plan' => $plan]);
+            // Check for duplicate plan name
+            $existingPlan = SavingPlans::where('name', $validated['name'])->first();
+            if ($existingPlan) {
+                Log::warning("Duplicate plan name attempted", ['name' => $validated['name']]);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'A plan with this name already exists. Please choose a different name.'
+                ], 206);
+            }
+
+            // Create plan
+            $plan = SavingPlans::create($validated);
+            Log::info("Plan created successfully", ['plan' => $plan]);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Plan created successfully',
                 'data' => $plan
             ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            Log::warning("Plan validation failed", ['errors' => $ve->errors()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $ve->errors()
+            ], 422);
         } catch (\Exception $e) {
-            \Log::error("Creating plan failed: " . $e->getMessage());
+            Log::error("Creating plan failed", [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to create plan'
@@ -326,10 +361,12 @@ class AdminController extends Controller
         }
     }
 
+
+
     public function updatePlan(Request $request, $id)
     {
         try {
-            $plan = Plan::findOrFail($id);
+            $plan = SavingPlans::findOrFail($id);
 
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -364,7 +401,7 @@ class AdminController extends Controller
     public function deletePlan($id)
     {
         try {
-            $plan = Plan::findOrFail($id);
+            $plan = SavingPlans::findOrFail($id);
             $plan->delete();
 
             \Log::info("Plan deleted successfully", ['plan_id' => $id]);
@@ -381,6 +418,4 @@ class AdminController extends Controller
             ], 500);
         }
     }
-=======
->>>>>>> 5f33a7596b3d2552366f9f64ab656233b022e0a9
 }

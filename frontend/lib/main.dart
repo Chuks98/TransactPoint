@@ -3,6 +3,8 @@ import 'package:transact_point/screens/about.dart';
 import 'package:transact_point/screens/admin-dashboard.dart';
 import 'package:transact_point/screens/admin-login.dart';
 import 'package:transact_point/screens/admin-main-layout.dart';
+import 'package:transact_point/screens/admin-savings-plans-form.dart';
+import 'package:transact_point/screens/admin-savings-plans.dart';
 import 'package:transact_point/screens/admin-settings.dart';
 import 'package:transact_point/screens/admin-transactions.dart';
 import 'package:transact_point/screens/admin-users.dart';
@@ -181,6 +183,12 @@ class _TransactPointAppState extends State<TransactPointApp> {
                 body: SavingsScreen(),
                 showBackButton: true,
               ),
+          '/saving-plans':
+              (context) => const MainLayout(
+                title: "Saving Plans",
+                body: SavingsPlansScreen(),
+                showBackButton: true,
+              ),
 
           '/edit-account':
               (context) => const MainLayout(
@@ -256,6 +264,10 @@ class _TransactPointAppState extends State<TransactPointApp> {
                 body: AdminTransactionsScreen(),
                 initialIndex: 3,
               ),
+
+          '/admin-saving-plans': (context) => const AdminPlansScreen(),
+          '/admin-saving-plans-form':
+              (context) => AdminSavingsPlanForm(onSaved: (bool ok) {}),
           '/admin-settings':
               (context) => AdminMainLayout(
                 title: "Settings",
